@@ -96,5 +96,11 @@ app.post('/api/admin/jobs/:id/complete',admin,(req,res)=>{
  db.prepare("UPDATE jobs SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE id=?").run(job.id);db.prepare("UPDATE bookings SET status='completed' WHERE id=?").run(job.booking_id);return {completed:true,cleaning_type:cleaning};
  })();res.json(result)}catch(e){err(res,409,e.message)}
 });
+app.get('/', (req, res) => {
+  res.removeHeader('Content-Security-Policy');
+  res.sendFile(process.cwd() + '/stroller-spa-manager.html');
+});
+
 app.get('/health',(req,res)=>res.json({ok:true}));
+
 app.listen(Number(process.env.PORT||3000),()=>console.log('Stroller Spa API listening'));
