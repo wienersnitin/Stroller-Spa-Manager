@@ -586,7 +586,14 @@ app.get('/health', async (req, res) => {
     await pool.query('SELECT 1');
     res.json({ ok: true, database: 'connected' });
   } catch (e) {
-    console.error('Health DB check failed:', e.message);
+   console.error('Health DB check failed:', {
+  message: e.message,
+  code: e.code,
+  databaseHost: new URL(process.env.DATABASE_URL).hostname,
+  databaseUser: decodeURIComponent(
+    new URL(process.env.DATABASE_URL).username
+  )
+});
     res.status(503).json({ ok: false, database: 'disconnected' });
   }
 });
