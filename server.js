@@ -504,7 +504,90 @@ app.get('/api/admin/dashboard', admin, async (req, res) => {
     err(res, 500, 'Could not load dashboard');
   }
 });
+// List bookings for the staff dashboard
+app.get('/api/admin/bookings', admin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        b.id,
+        b.reference,
+        b.customer_id,
+        b.gear_id,
+        b.membership_id,
+        b.service,
+        b.preferred_date,
+        b.fulfilment,
+        b.notes,
+        b.status,
+        b.source,
+        b.created_at,
+        c.name AS customer_name,
+        c.phone AS customer_phone,
+        c.email AS customer_email,
+        g.category AS gear_category,
+        g.model AS gear_model,
+        g.serial AS gear_serial,
+        j.id AS job_id,
+        j.status AS job_status
+      FROM bookings b
+      JOIN customers c ON c.id = b.customer_id
+      LEFT JOIN gear g ON g.id = b.gear_id
+      LEFT JOIN jobs j ON j.booking_id = b.id
+      ORDER BY b.id DESC
+      LIMIT 300
+    `);
 
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(result.rows);
+  } catch (e) {
+    console.error('Bookings list failed:', e.message);
+    err(res, 500, 'Could not load bookings');
+  }
+});
+
+// List existing job cards for the staff dashboard
+app.get('/api/admin/jobs', admin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        j.id AS job_id,
+        j.status AS job_status,
+        j.technician,
+        j.inspection_notes,
+        j.add_on_amount,
+        j.completed_at,
+        j.created_at AS job_created_at,
+        b.id AS booking_id,
+        b.reference,
+        b.service,
+        b.preferred_date,
+        b.fulfilment,
+        b.notes AS booking_notes,
+        b.status AS booking_status,
+        b.membership_id,
+        c.id AS customer_id,
+        c.name AS customer_name,
+        c.phone AS customer_phone,
+        c.email AS customer_email,
+        g.id AS gear_id,
+        g.category AS gear_category,
+        g.model AS gear_model,
+        g.serial AS gear_serial
+      FROM jobs j
+      JOIN bookings b ON b.id = j.booking_id
+      JOIN customers c ON c.id = b.customer_id
+      LEFT JOIN gear g ON g.id = b.gear_id
+      ORDER BY j.id DESC
+      LIMIT 300
+    `);
+
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(result.rows);
+  } catch (e) {
+    console.error('Jobs list failed:', e.message);
+    err(res, 500, 'Could not load job cards');
+  }
+});
 // Membership list
 app.get('/api/admin/memberships', admin, async (req, res) => {
   try {
