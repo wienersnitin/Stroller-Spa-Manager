@@ -1,41 +1,411 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stroller Spa | Operations</title><style>
-:root{font-family:Inter,system-ui,Arial,sans-serif;color:#172a43;background:#f4f8fb}*{box-sizing:border-box}body{margin:0}header{background:#102f58;color:white;padding:18px 26px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}header h1{margin:0;font-size:24px}header small{color:#c8e0f4}.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 72px)}nav{background:#fff;border-right:1px solid #e2e8f0;padding:18px 12px}nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px;border-radius:9px;color:#29445d;font-size:14px;cursor:pointer}nav button.active{background:#e4f5f6;color:#075e6b;font-weight:700}main{padding:24px;max-width:1500px;width:100%}.view{display:none}.view.active{display:block}h2{margin:0 0 16px}h3{margin:0 0 12px}.sub{color:#65758b;font-size:13px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:18px}.card,.panel{background:white;border:1px solid #e1e9f0;border-radius:14px;padding:18px;box-shadow:0 2px 8px #1b3b5710}.card b{font-size:28px;display:block;margin-top:8px}.panel{margin-bottom:18px;overflow:auto}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:15px}button,.btn{background:#087e91;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}button.secondary{background:#e8f0f4;color:#1c4d62}button.danger{background:#a7324b}button:disabled{opacity:.45;cursor:not-allowed}input,select,textarea{padding:10px;border:1px solid #cbd9e2;border-radius:8px;font:inherit;width:100%;background:white}label{display:block;font-size:13px;font-weight:600;margin-bottom:12px}label input,label select,label textarea{margin-top:5px}form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.wide{grid-column:1/-1}table{border-collapse:collapse;width:100%;min-width:700px;font-size:13px}th,td{text-align:left;padding:11px;border-bottom:1px solid #e6edf2;vertical-align:top}th{background:#f5f9fc;color:#4a6076}.pill{display:inline-block;padding:5px 8px;border-radius:20px;background:#e7f5f4;color:#06756d;font-size:12px}.note{padding:12px;background:#fff9e7;border:1px solid #f1dea5;border-radius:10px;color:#74560b;font-size:13px;margin-bottom:15px}.muted{color:#6c7f90}.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{padding:6px 9px;font-size:12px}.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.mini{font-size:12px}.right{text-align:right}.error{color:#b91c1c}.success{color:#06756d}@media(max-width:800px){.layout{display:block}nav{display:flex;overflow-x:auto;gap:5px;border-bottom:1px solid #ddd}nav button{white-space:nowrap;width:auto}main{padding:14px}form,.split{grid-template-columns:1fr}}
-</style></head><body><header><div><h1>🛒 Stroller <span style="color:#ff9cad">Spa</span> · Manager</h1><small>Cleaning · Memberships · Repairs · Pickup & Delivery</small></div><div><span id="today"></span> &nbsp; <button class="secondary" onclick="exportData()">Export Backup</button> <button class="secondary" onclick="document.getElementById('restore').click()">Restore</button><input type="file" id="restore" accept="application/json" hidden onchange="restoreData(event)"></div></header><div class="layout"><nav id="nav"></nav><main>
-<section id="dashboard" class="view"><h2>Operations Dashboard</h2><div class="note">Local prototype: records are stored in this browser only. Export backups regularly. Do not use for live customer data until secure hosting, authentication, backups and access controls are implemented.</div><div class="cards" id="stats"></div><div class="panel"><h3>Active Jobs</h3><div id="recent"></div></div></section>
-<section id="customers" class="view"><h2>Customers</h2><div class="panel"><h3>Add Customer</h3><form id="customerForm"><label>Name *<input name="name" required></label><label>Mobile / WhatsApp *<input name="phone" required pattern="[0-9+ -]{10,18}"></label><label>Address<input name="address"></label><label>Notes<input name="notes"></label><div class="wide"><button>Add Customer</button></div></form></div><div class="panel"><h3>Customer Directory</h3><input placeholder="Search customers..." oninput="renderCustomers(this.value)" style="max-width:320px;margin-bottom:12px"><div id="customerTable"></div></div></section>
-<section id="gear" class="view"><h2>Registered Baby Gear</h2><div class="panel"><h3>Register Product</h3><form id="gearForm"><label>Customer *<select name="customerId" class="customerOptions" required></select></label><label>Category *<select name="category" id="gearCategory" required></select></label><label>Brand<input name="brand"></label><label>Model / Description *<input name="model" required></label><label>Colour<input name="color"></label><label>Serial / Identifier<input name="serial"></label><label class="wide">Notes / Accessories<input name="notes"></label><div class="wide"><button>Register Gear</button></div></form></div><div class="panel"><h3>Gear Register</h3><div id="gearTable"></div></div></section>
-<section id="memberships" class="view"><h2>Prepaid Packages</h2><div class="panel"><h3>Activate Membership</h3><form id="membershipForm"><label>Customer *<select name="customerId" class="customerOptions" required onchange="refreshGearSelect(this.form)"></select></label><label>Registered Product *<select name="gearId" class="gearOptions" required></select></label><label>Package *<select name="planId" id="planOptions" required></select></label><label>Activation Date *<input name="start" type="date" required></label><label>Payment Reference<input name="paymentRef"></label><label>Notes<input name="notes"></label><div class="wide"><button>Activate Package</button></div></form><p class="sub">Travel-system plans are tied to a single registered travel-system record representing the stroller and infant car seat. One entitlement is for the full system, not each component separately.</p></div><div class="panel"><h3>Membership Register</h3><div id="membershipTable"></div></div></section>
-<section id="jobs" class="view"><h2>Bookings & Job Cards</h2><div class="panel"><h3>Create Booking</h3><form id="jobForm"><label>Customer *<select name="customerId" class="customerOptions" required onchange="refreshGearSelect(this.form);refreshMembershipSelect(this.form)"></select></label><label>Baby Gear *<select name="gearId" class="gearOptions" required></select></label><label>Service *<select name="service" required><option>Essential Cleaning</option><option>Deep Cleaning</option><option>Repair Inspection</option><option>Repair Work</option><option>Other Service</option></select></label><label>Prepaid Membership (optional)<select name="membershipId" class="membershipOptions"></select></label><label>Booking Date *<input type="date" name="date" required></label><label>Pickup / Drop-off<select name="logistics"><option>Customer drop-off</option><option>Pickup requested</option><option>Store collection</option></select></label><label>Service Charge (₹)<input type="number" name="charge" min="0" value="0"></label><label>Additional Charges (₹)<input type="number" name="extra" min="0" value="0"></label><label class="wide">Condition / Accessories / Customer Approval Notes<textarea name="notes" rows="2"></textarea></label><div class="wide"><button>Create Job Card</button></div></form></div><div class="panel"><h3>Jobs & Status</h3><div id="jobTable"></div></div></section>
-<section id="catalog" class="view"><h2>Service & Package Catalogue</h2><div class="panel"><h3>Cleaning Prices</h3><div id="priceTable"></div></div><div class="panel"><h3>Membership Plans</h3><div id="planTable"></div><p class="sub">Premium Travel System validity defaults to 15 months per your original instruction; update the configuration before selling if you prefer 18 months.</p></div><div class="panel"><h3>Common Add-ons</h3><div id="addonTable"></div><p class="sub">All add-ons are subject to product compatibility, inspection and customer approval. Steam and UV are not suitable for every fabric or safety component.</p></div></section>
-<section id="reports" class="view"><h2>Reports & Data</h2><div class="cards" id="reportStats"></div><div class="panel"><h3>Completed Services</h3><div id="completedTable"></div></div><div class="panel"><h3>Data Management</h3><p>Export all records as JSON for backup. Importing a backup replaces current records. Use CSV export for spreadsheet reporting.</p><div class="toolbar"><button onclick="exportData()">Download JSON Backup</button><button class="secondary" onclick="exportCSV()">Download Jobs CSV</button><button class="danger" onclick="clearData()">Delete All Local Data</button></div></div></section>
-</main></div><script>
-const categories=['Stroller','Travel System (Stroller + Infant Car Seat)','Infant Carry Car Seat (0/0+)','Car Seat Group 1/2/3','Bassinet','Bouncer','Rocker','Walker','High Chair - Adjustable','High Chair - Wooden','Mother’s Bag','Baby Nest','Sleeping Bag','Soft Toy - Small','Soft Toy - Medium','Soft Toy - Large','Ride-on / Battery Toy','Other Baby Gear'];
-const prices=[['Stroller',1999,2499],['Travel System (Stroller + Infant Car Seat)',null,3499],['Infant Carry Car Seat (0/0+)',1299,1999],['Car Seat Group 1/2/3',1299,1999],['Bassinet',1299,1999],['Bouncer',1299,1999],['Rocker',1299,1999],['Walker',1299,1999],['High Chair - Adjustable',1499,2299],['High Chair - Wooden',1799,null],['Mother’s Bag',599,null],['Baby Nest',699,null],['Sleeping Bag',699,null],['Soft Toy - Small',null,null],['Soft Toy - Medium',null,null],['Soft Toy - Large',null,null],['Ride-on / Battery Toy',null,null],['Other Baby Gear',null,null]];
-const plans=[{id:'travel-premium',name:'Premium Travel System Care',price:18999,months:15,deep:4,essential:2,category:'Travel System (Stroller + Infant Car Seat)'},{id:'travel-standard',name:'Standard Travel System Care',price:12999,months:12,deep:2,essential:2,category:'Travel System (Stroller + Infant Car Seat)'}];
-const addons=[['Deep fabric wash',299],['Steam sanitization',399],['UV treatment',299],['Heavy stain treatment',399],['Odour removal',299],['Repair inspection',299],['Repair labour','From ₹499 + parts'],['Pickup / delivery','As quoted']];
-const statuses=['Booked','Pickup Scheduled','Received','Inspected','Cleaning In Progress','Drying & Reassembly','Quality Check','Ready for Delivery','Completed','Cancelled'];
-const blank=()=>({customers:[],gear:[],memberships:[],jobs:[]});let db;try{db=JSON.parse(localStorage.getItem('strollerSpaDB'))||blank()}catch{db=blank()}for(const k of Object.keys(blank()))db[k]??=[];
-const $=s=>document.querySelector(s),all=s=>[...document.querySelectorAll(s)],esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),money=n=>'₹'+Number(n||0).toLocaleString('en-IN'),id=p=>p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6),save=()=>{localStorage.setItem('strollerSpaDB',JSON.stringify(db));render()},find=(key,id)=>db[key].find(x=>x.id===id),customer=id=>find('customers',id)?.name||'Unknown',gear=id=>{let x=find('gear',id);return x?`${x.brand||''} ${x.model} (${x.category})`:'Unknown'},fmt=d=>d?new Date(d+'T12:00:00').toLocaleDateString('en-IN'):'—',addMonths=(s,n)=>{let d=new Date(s+'T12:00:00');const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return d.toISOString().slice(0,10)};
-function view(v){all('.view').forEach(x=>x.classList.toggle('active',x.id===v));all('nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===v));render()}const pages=[['dashboard','📊 Dashboard'],['customers','👨‍👩‍👧 Customers'],['gear','🍼 Baby Gear'],['memberships','🎟 Packages'],['jobs','🧽 Job Cards'],['catalog','📋 Price Catalogue'],['reports','📈 Reports']];$('#nav').innerHTML=pages.map(([id,label])=>`<button data-view="${id}" onclick="view('${id}')">${label}</button>`).join('');$('#today').textContent=new Date().toLocaleDateString('en-IN',{dateStyle:'medium'});$('#gearCategory').innerHTML=categories.map(x=>`<option>${esc(x)}</option>`).join('');$('#planOptions').innerHTML=plans.map(p=>`<option value="${p.id}">${p.name} · ${money(p.price)}</option>`).join('');all('input[type=date]').forEach(x=>x.value=new Date().toISOString().slice(0,10));
-function refreshGearSelect(form){const cid=form.querySelector('[name=customerId]').value;form.querySelector('[name=gearId]').innerHTML='<option value="">Select product</option>'+db.gear.filter(g=>g.customerId===cid).map(g=>`<option value="${g.id}">${esc(g.model)} (${esc(g.category)})</option>`).join('')}
-function refreshMembershipSelect(form){let s=form.querySelector('[name=membershipId]');if(!s)return;let cid=form.querySelector('[name=customerId]').value;s.innerHTML='<option value="">One-time / no package</option>'+db.memberships.filter(m=>m.customerId===cid).map(m=>`<option value="${m.id}">${esc(m.id)} · ${esc(m.planName)}</option>`).join('')}
-function render(){all('.customerOptions').forEach(s=>{let v=s.value;s.innerHTML='<option value="">Select customer</option>'+db.customers.map(c=>`<option value="${c.id}">${esc(c.name)} · ${esc(c.phone)}</option>`).join('');s.value=v});all('.gearOptions').forEach(s=>{let v=s.value;refreshGearSelect(s.form);s.value=v});all('.membershipOptions').forEach(s=>{let v=s.value;refreshMembershipSelect(s.form);s.value=v});renderCustomers();$('#gearTable').innerHTML=table(['Product ID','Customer','Product','Identifier'],db.gear.map(g=>[g.id,customer(g.customerId),gear(g.id),g.serial||'—']));renderMemberships();renderJobs();$('#priceTable').innerHTML=table(['Category','Essential','Deep'],prices.map(p=>[p[0],p[1]?money(p[1]):'Quote required',p[2]?money(p[2]):'Quote required']));$('#planTable').innerHTML=table(['Plan','Price','Validity','Deep','Essential'],plans.map(p=>[p.name,money(p.price),p.months+' months',p.deep,p.essential]));$('#addonTable').innerHTML=table(['Add-on','Suggested price'],addons.map(a=>[a[0],typeof a[1]==='number'?money(a[1]):a[1]]));let active=db.jobs.filter(j=>!['Completed','Cancelled'].includes(j.status));$('#stats').innerHTML=[['Customers',db.customers.length],['Registered Gear',db.gear.length],['Active Jobs',active.length],['Active Packages',db.memberships.filter(m=>m.end>=new Date().toISOString().slice(0,10)).length],['Completed Jobs',db.jobs.filter(j=>j.status==='Completed').length]].map(([k,v])=>`<div class="card"><span class="sub">${k}</span><b>${v}</b></div>`).join('');$('#recent').innerHTML=jobTable(active.slice(-10).reverse());$('#reportStats').innerHTML=[['Total recorded job charges',money(db.jobs.reduce((s,j)=>s+Number(j.charge||0)+Number(j.extra||0),0))],['Membership sales',money(db.memberships.reduce((s,m)=>s+Number(m.price||0),0))],['Completed jobs',db.jobs.filter(j=>j.status==='Completed').length]].map(([k,v])=>`<div class="card"><span class="sub">${k}</span><b>${v}</b></div>`).join('');$('#completedTable').innerHTML=jobTable(db.jobs.filter(j=>j.status==='Completed'))}
-function table(headers,rows){return `<table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}" class="muted">No records yet</td></tr>`}</tbody></table>`}
-function renderCustomers(q=''){let a=db.customers.filter(c=>(c.name+' '+c.phone).toLowerCase().includes(q.toLowerCase()));$('#customerTable').innerHTML=table(['Customer ID','Name','Phone','Address','Notes'],a.map(c=>[c.id,c.name,c.phone,c.address,c.notes]))}
-function balance(m,type){return m[type]-db.jobs.filter(j=>j.membershipId===m.id&&j.status==='Completed'&&j.service===(type==='deep'?'Deep Cleaning':'Essential Cleaning')).length}
-function renderMemberships(){$('#membershipTable').innerHTML=`<table><thead><tr><th>Membership</th><th>Customer / Gear</th><th>Validity</th><th>Remaining</th><th>Payment</th></tr></thead><tbody>${db.memberships.length?db.memberships.map(m=>`<tr><td><b>${esc(m.id)}</b><br>${esc(m.planName)}</td><td>${esc(customer(m.customerId))}<br><small>${esc(gear(m.gearId))}</small></td><td>${fmt(m.start)} – ${fmt(m.end)}<br><span class="pill">${m.end<new Date().toISOString().slice(0,10)?'Expired':'Active'}</span></td><td>Deep: <b>${balance(m,'deep')}/${m.deep}</b><br>Essential: <b>${balance(m,'essential')}/${m.essential}</b></td><td>${money(m.price)}<br>${esc(m.paymentRef)}</td></tr>`).join(''):'<tr><td colspan="5">No memberships</td></tr>'}</tbody></table>`}
-function jobTable(a){return `<table><thead><tr><th>Job</th><th>Customer / Gear</th><th>Service</th><th>Booking</th><th>Status</th><th>Charges</th><th>Action</th></tr></thead><tbody>${a.length?a.map(j=>`<tr><td>${esc(j.id)}<br><small>${j.membershipId?'Prepaid: '+esc(j.membershipId):'One-time'}</small></td><td>${esc(customer(j.customerId))}<br><small>${esc(gear(j.gearId))}</small></td><td>${esc(j.service)}<br><small>${esc(j.logistics)}</small></td><td>${fmt(j.date)}</td><td><span class="pill">${esc(j.status)}</span></td><td>${money(Number(j.charge||0)+Number(j.extra||0))}</td><td><div class="actions"><button onclick="advanceJob('${j.id}')" ${['Completed','Cancelled'].includes(j.status)?'disabled':''}>Next</button><button class="secondary" onclick="detailsJob('${j.id}')">Details</button><button class="danger" onclick="cancelJob('${j.id}')" ${['Completed','Cancelled'].includes(j.status)?'disabled':''}>Cancel</button></div></td></tr>`).join(''):'<tr><td colspan="7">No jobs</td></tr>'}</tbody></table>`}
-function renderJobs(){$('#jobTable').innerHTML=jobTable([...db.jobs].reverse())}
-$('#customerForm').onsubmit=e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target));if(db.customers.some(c=>c.phone.replace(/\D/g,'')===v.phone.replace(/\D/g,''))&&!confirm('A customer with this phone already exists. Add another?'))return;db.customers.push({...v,id:id('CUS')});e.target.reset();save()};
-$('#gearForm').onsubmit=e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target));db.gear.push({...v,id:id('GEAR')});e.target.reset();save()};
-$('#membershipForm').onsubmit=e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target)),p=plans.find(p=>p.id===v.planId),g=find('gear',v.gearId);if(!g||g.customerId!==v.customerId)return alert('Select a product belonging to this customer.');if(g.category!==p.category)return alert('This membership is for a registered Travel System only.');db.memberships.push({...v,id:id('SPA'),planName:p.name,price:p.price,months:p.months,deep:p.deep,essential:p.essential,end:addMonths(v.start,p.months)});e.target.reset();save()};
-$('#jobForm').onsubmit=e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target)),g=find('gear',v.gearId);if(!g||g.customerId!==v.customerId)return alert('Select a product belonging to the customer.');if(v.membershipId){let m=find('memberships',v.membershipId);if(!m||m.customerId!==v.customerId||m.gearId!==v.gearId)return alert('Membership does not match this registered product.');if(v.date<m.start||v.date>m.end)return alert('Booking date is outside membership validity.');let type=v.service==='Deep Cleaning'?'deep':v.service==='Essential Cleaning'?'essential':null;if(!type)return alert('Only cleaning services may use package entitlements.');let pending=db.jobs.filter(j=>j.membershipId===m.id&&j.service===v.service&&!['Completed','Cancelled'].includes(j.status)).length;if(balance(m,type)-pending<=0)return alert('No available entitlement: completed and reserved jobs exhaust the balance.');}db.jobs.push({...v,id:id('JOB'),status:'Booked',charge:Number(v.charge||0),extra:Number(v.extra||0)});e.target.reset();save()};
-function advanceJob(i){let j=find('jobs',i),n=statuses.indexOf(j.status);if(n<0||n>=8)return;if(statuses[n+1]==='Completed'&&j.membershipId){let m=find('memberships',j.membershipId),type=j.service==='Deep Cleaning'?'deep':'essential';if(!m||balance(m,type)<=0)return alert('Insufficient package balance.');}j.status=statuses[n+1];save()}
-function cancelJob(i){let j=find('jobs',i);if(confirm('Cancel this booking? No package entitlement will be deducted.')){j.status='Cancelled';save()}}
-function detailsJob(i){let j=find('jobs',i);alert(`Job: ${j.id}\nCustomer: ${customer(j.customerId)}\nGear: ${gear(j.gearId)}\nService: ${j.service}\nStatus: ${j.status}\nNotes: ${j.notes||'None'}\nPayment/Charges: ${money(Number(j.charge)+Number(j.extra))}\nMembership: ${j.membershipId||'None'}`)}
-function download(content,name,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}function exportData(){download(JSON.stringify({version:1,exportedAt:new Date().toISOString(),data:db},null,2),'stroller-spa-backup.json','application/json')}
-function restoreData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),d=x.data||x;if(!['customers','gear','memberships','jobs'].every(k=>Array.isArray(d[k])))throw Error('Invalid backup');if(confirm('Replace all existing local records with backup?')){db=d;save()}}catch(err){alert('Cannot restore: '+err.message)}};r.readAsText(f);e.target.value=''}
-function exportCSV(){let keys=['id','customerId','gearId','service','membershipId','date','status','charge','extra','logistics','notes'];let rows=[keys,...db.jobs.map(j=>keys.map(k=>j[k]??''))];download(rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n'),'stroller-spa-jobs.csv','text/csv')}
-function clearData(){if(prompt('Type DELETE to erase all local records')==='DELETE'){db=blank();save()}}
-view('dashboard');
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stroller Spa | Operations</title>
+
+<style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#172a43;background:#f4f8fb}
+*{box-sizing:border-box}
+body{margin:0}
+header{background:#102f58;color:white;padding:18px 26px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+header h1{margin:0;font-size:24px}
+header small{color:#c8e0f4}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 72px)}
+nav{background:#fff;border-right:1px solid #e2e8f0;padding:18px 12px}
+nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px;border-radius:9px;color:#29445d;font-size:14px;cursor:pointer}
+nav button.active{background:#e4f5f6;color:#075e6b;font-weight:700}
+main{padding:24px;max-width:1500px;width:100%}
+.view{display:none}
+.view.active{display:block}
+h2{margin:0 0 16px}
+h3{margin:0 0 12px}
+.sub{color:#65758b;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:18px}
+.card,.panel{background:white;border:1px solid #e1e9f0;border-radius:14px;padding:18px;box-shadow:0 2px 8px #1b3b5710}
+.card b{font-size:28px;display:block;margin-top:8px}
+.panel{margin-bottom:18px;overflow:auto}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+button,.btn{background:#087e91;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}
+button.secondary{background:#e8f0f4;color:#1c4d62}
+button.danger{background:#a7324b}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{padding:10px;border:1px solid #cbd9e2;border-radius:8px;font:inherit;width:100%;background:white}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:12px}
+label input,label select,label textarea{margin-top:5px}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+.wide{grid-column:1/-1}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:13px}
+th,td{text-align:left;padding:11px;border-bottom:1px solid #e6edf2;vertical-align:top}
+th{background:#f5f9fc;color:#4a6076}
+.pill{display:inline-block;padding:5px 8px;border-radius:20px;background:#e7f5f4;color:#06756d;font-size:12px}
+.note{padding:12px;background:#fff9e7;border:1px solid #f1dea5;border-radius:10px;color:#74560b;font-size:13px;margin-bottom:15px}
+.muted{color:#6c7f90}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.actions button{padding:6px 9px;font-size:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mini{font-size:12px}
+.right{text-align:right}
+.error{color:#b91c1c}
+.success{color:#06756d}
+.live-actions{display:flex;gap:6px;flex-wrap:wrap}
+.live-actions button{padding:7px 9px;font-size:12px}
+@media(max-width:800px){
+ .layout{display:block}
+ nav{display:flex;overflow-x:auto;gap:5px;border-bottom:1px solid #ddd}
+ nav button{white-space:nowrap;width:auto}
+ main{padding:14px}
+ form,.split{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div>
+    <h1>🛒 Stroller <span style="color:#ff9cad">Spa</span> · Manager</h1>
+    <small>Cleaning · Memberships · Repairs · Pickup & Delivery</small>
+  </div>
+  <div>
+    <span id="today"></span> &nbsp;
+    <button class="secondary" onclick="exportData()">Export Backup</button>
+    <button class="secondary" onclick="document.getElementById('restore').click()">Restore</button>
+    <input type="file" id="restore" accept="application/json" hidden onchange="restoreData(event)">
+  </div>
+</header>
+
+<div class="layout">
+<nav id="nav"></nav>
+<main>
+
+<section id="dashboard" class="view">
+  <h2>Operations Dashboard</h2>
+
+  <div class="note">
+    Local records such as manually created customers, gear, memberships and jobs
+    are still stored in this browser. Shopify and online bookings below are loaded
+    from the secure server.
+  </div>
+
+  <div class="cards" id="stats"></div>
+
+  <!-- NEW: LIVE ONLINE BOOKINGS PANEL -->
+  <div class="panel">
+    <h3>Shopify &amp; Online Bookings</h3>
+    <p class="sub">Live bookings loaded from the secure server.</p>
+    <div id="liveBookingMessage" class="sub" role="status" aria-live="polite">
+      Loading online bookings...
+    </div>
+    <div id="liveBookingTable"></div>
+    <div class="toolbar" style="margin-top:12px;margin-bottom:0">
+      <button class="secondary" onclick="loadLiveBookings()">Refresh Bookings</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Active Jobs</h3>
+    <div id="recent"></div>
+  </div>
+</section>
+
+<section id="customers" class="view">
+  <h2>Customers</h2>
+  <div class="panel">
+    <h3>Add Customer</h3>
+    <form id="customerForm">
+      <label>Name *<input name="name" required></label>
+      <label>Mobile / WhatsApp *<input name="phone" required pattern="[0-9+ -]{10,18}"></label>
+      <label>Address<input name="address"></label>
+      <label>Notes<input name="notes"></label>
+      <div class="wide"><button>Add Customer</button></div>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Customer Directory</h3>
+    <input placeholder="Search customers..." oninput="renderCustomers(this.value)" style="max-width:320px;margin-bottom:12px">
+    <div id="customerTable"></div>
+  </div>
+</section>
+
+<section id="gear" class="view">
+  <h2>Registered Baby Gear</h2>
+  <div class="panel">
+    <h3>Register Product</h3>
+    <form id="gearForm">
+      <label>Customer *<select name="customerId" class="customerOptions" required></select></label>
+      <label>Category *<select name="category" id="gearCategory" required></select></label>
+      <label>Brand<input name="brand"></label>
+      <label>Model / Description *<input name="model" required></label>
+      <label>Colour<input name="color"></label>
+      <label>Serial / Identifier<input name="serial"></label>
+      <label class="wide">Notes / Accessories<input name="notes"></label>
+      <div class="wide"><button>Register Gear</button></div>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Gear Register</h3>
+    <div id="gearTable"></div>
+  </div>
+</section>
+
+<section id="memberships" class="view">
+  <h2>Prepaid Packages</h2>
+  <div class="panel">
+    <h3>Activate Membership</h3>
+    <form id="membershipForm">
+      <label>Customer *<select name="customerId" class="customerOptions" required onchange="refreshGearSelect(this.form)"></select></label>
+      <label>Registered Product *<select name="gearId" class="gearOptions" required></select></label>
+      <label>Package *<select name="planId" id="planOptions" required></select></label>
+      <label>Activation Date *<input name="start" type="date" required></label>
+      <label>Payment Reference<input name="paymentRef"></label>
+      <label>Notes<input name="notes"></label>
+      <div class="wide"><button>Activate Package</button></div>
+    </form>
+    <p class="sub">Travel-system plans are tied to a single registered travel-system record representing the stroller and infant car seat. One entitlement is for the full system, not each component separately.</p>
+  </div>
+  <div class="panel">
+    <h3>Membership Register</h3>
+    <div id="membershipTable"></div>
+  </div>
+</section>
+
+<section id="jobs" class="view">
+  <h2>Bookings &amp; Job Cards</h2>
+  <div class="panel">
+    <h3>Create Booking</h3>
+    <form id="jobForm">
+      <label>Customer *<select name="customerId" class="customerOptions" required onchange="refreshGearSelect(this.form);refreshMembershipSelect(this.form)"></select></label>
+      <label>Baby Gear *<select name="gearId" class="gearOptions" required></select></label>
+      <label>Service *<select name="service" required><option>Essential Cleaning</option><option>Deep Cleaning</option><option>Repair Inspection</option><option>Repair Work</option><option>Other Service</option></select></label>
+      <label>Prepaid Membership (optional)<select name="membershipId" class="membershipOptions"></select></label>
+      <label>Booking Date *<input type="date" name="date" required></label>
+      <label>Pickup / Drop-off<select name="logistics"><option>Customer drop-off</option><option>Pickup requested</option><option>Store collection</option></select></label>
+      <label>Service Charge (₹)<input type="number" name="charge" min="0" value="0"></label>
+      <label>Additional Charges (₹)<input type="number" name="extra" min="0" value="0"></label>
+      <label class="wide">Condition / Accessories / Customer Approval Notes<textarea name="notes" rows="2"></textarea></label>
+      <div class="wide"><button>Create Job Card</button></div>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Jobs &amp; Status</h3>
+    <div id="jobTable"></div>
+  </div>
+</section>
+
+<section id="catalog" class="view">
+  <h2>Service &amp; Package Catalogue</h2>
+  <div class="panel"><h3>Cleaning Prices</h3><div id="priceTable"></div></div>
+  <div class="panel">
+    <h3>Membership Plans</h3>
+    <div id="planTable"></div>
+    <p class="sub">Premium Travel System validity defaults to 15 months per your original instruction; update the configuration before selling if you prefer 18 months.</p>
+  </div>
+  <div class="panel">
+    <h3>Common Add-ons</h3>
+    <div id="addonTable"></div>
+    <p class="sub">All add-ons are subject to product compatibility, inspection and customer approval. Steam and UV are not suitable for every fabric or safety component.</p>
+  </div>
+</section>
+
+<section id="reports" class="view">
+  <h2>Reports &amp; Data</h2>
+  <div class="cards" id="reportStats"></div>
+  <div class="panel"><h3>Completed Services</h3><div id="completedTable"></div></div>
+  <div class="panel">
+    <h3>Data Management</h3>
+    <p>Export all records as JSON for backup. Importing a backup replaces current records. Use CSV export for spreadsheet reporting.</p>
+    <div class="toolbar">
+      <button onclick="exportData()">Download JSON Backup</button>
+      <button class="secondary" onclick="exportCSV()">Download Jobs CSV</button>
+      <button class="danger" onclick="clearData()">Delete All Local Data</button>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+const categories=[
+'Stroller','Travel System (Stroller + Infant Car Seat)','Infant Carry Car Seat (0/0+)',
+'Car Seat Group 1/2/3','Bassinet','Bouncer','Rocker','Walker',
+'High Chair - Adjustable','High Chair - Wooden','Mother’s Bag','Baby Nest',
+'Sleeping Bag','Soft Toy - Small','Soft Toy - Medium','Soft Toy - Large',
+'Ride-on / Battery Toy','Other Baby Gear'
+];
+
+const prices=[
+['Stroller',1999,2499],
+['Travel System (Stroller + Infant Car Seat)',null,3499],
+['Infant Carry Car Seat (0/0+)',1299,1999],
+['Car Seat Group 1/2/3',1299,1999],
+['Bassinet',1299,1999],['Bouncer',1299,1999],['Rocker',1299,1999],
+['Walker',1299,1999],['High Chair - Adjustable',1499,2299],
+['High Chair - Wooden',1799,null],['Mother’s Bag',599,null],
+['Baby Nest',699,null],['Sleeping Bag',699,null],
+['Soft Toy - Small',null,null],['Soft Toy - Medium',null,null],
+['Soft Toy - Large',null,null],['Ride-on / Battery Toy',null,null],
+['Other Baby Gear',null,null]
+];
+
+const plans=[
+{id:'travel-premium',name:'Premium Travel System Care',price:18999,months:15,deep:4,essential:2,category:'Travel System (Stroller + Infant Car Seat)'},
+{id:'travel-standard',name:'Standard Travel System Care',price:12999,months:12,deep:2,essential:2,category:'Travel System (Stroller + Infant Car Seat)'}
+];
+
+const addons=[
+['Deep fabric wash',299],['Steam sanitization',399],['UV treatment',299],
+['Heavy stain treatment',399],['Odour removal',299],['Repair inspection',299],
+['Repair labour','From ₹499 + parts'],['Pickup / delivery','As quoted']
+];
+
+const statuses=[
+'Booked','Pickup Scheduled','Received','Inspected','Cleaning In Progress',
+'Drying & Reassembly','Quality Check','Ready for Delivery','Completed','Cancelled'
+];
+
+const blank=()=>({customers:[],gear:[],memberships:[],jobs:[]});
+let db;
+
+try{
+  db=JSON.parse(localStorage.getItem('strollerSpaDB'))||blank();
+}catch{
+  db=blank();
+}
+
+for(const k of Object.keys(blank()))db[k]??=[];
+
+const $=s=>document.querySelector(s);
+const all=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const id=p=>p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
+const save=()=>{localStorage.setItem('strollerSpaDB',JSON.stringify(db));render()};
+const find=(key,id)=>db[key].find(x=>x.id===id);
+const customer=id=>find('customers',id)?.name||'Unknown';
+const gear=id=>{let x=find('gear',id);return x?`${x.brand||''} ${x.model} (${x.category})`:'Unknown'};
+const fmt=d=>d?new Date(d+'T12:00:00').toLocaleDateString('en-IN'):'—';
+
+const addMonths=(s,n)=>{
+  let d=new Date(s+'T12:00:00');
+  const day=d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth()+n);
+  d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));
+  return d.toISOString().slice(0,10);
+};
+
+/* Navigation */
+function view(v){
+  all('.view').forEach(x=>x.classList.toggle('active',x.id===v));
+  all('nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+  render();
+
+  // Automatically refresh server bookings whenever Dashboard opens.
+  if(v==='dashboard') loadLiveBookings();
+}
+
+const pages=[
+  ['dashboard','📊 Dashboard'],
+  ['customers','👨‍👩‍👧 Customers'],
+  ['gear','🍼 Baby Gear'],
+  ['memberships','🎟 Packages'],
+  ['jobs','🧽 Job Cards'],
+  ['catalog','📋 Price Catalogue'],
+  ['reports','📈 Reports']
+];
+
+$('#nav').innerHTML=pages.map(([id,label])=>
+  `<button data-view="${id}" onclick="view('${id}')">${label}</button>`
+).join('');
+
+$('#today').textContent=new Date().toLocaleDateString('en-IN',{dateStyle:'medium'});
+$('#gearCategory').innerHTML=categories.map(x=>`<option>${esc(x)}</option>`).join('');
+$('#planOptions').innerHTML=plans.map(p=>`<option value="${p.id}">${esc(p.name)} · ${money(p.price)}</option>`).join('');
+all('input[type=date]').forEach(x=>x.value=new Date().toISOString().slice(0,10));
+
+/* Local prototype functions */
+function refreshGearSelect(form){
+  const cid=form.querySelector('[name=customerId]').value;
+  form.querySelector('[name=gearId]').innerHTML=
+    '<option value="">Select product</option>'+
+    db.gear.filter(g=>g.customerId===cid).map(g=>
+      `<option value="${g.id}">${esc(g.model)} (${esc(g.category)})</option>`
+    ).join('');
+}
+
+function refreshMembershipSelect(form){
+  let s=form.querySelector('[name=membershipId]');
+  if(!s)return;
+  let cid=form.querySelector('[name=customerId]').value;
+  s.innerHTML='<option value="">One-time / no package</option>'+
+    db.memberships.filter(m=>m.customerId===cid).map(m=>
+      `<option value="${m.id}">${esc(m.id)} · ${esc(m.planName)}</option>`
+    ).join('');
+}
+
+function render(){
+  all('.customerOptions').forEach(s=>{
+    let v=s.value;
+    s.innerHTML='<option value="">Select customer</option>'+
+      db.customers.map(c=>`<option value="${c.id}">${esc(c.name)} · ${esc(c.phone)}</option>`).join('');
+    s.value=v;
+  });
+
+  all('.gearOptions').forEach(s=>{
+    let v=s.value;
+    refreshGearSelect(s.form);
+    s.value=v;
+  });
+
+  all('.membershipOptions').forEach(s=>{
+    let v=s.value;
+    refreshMembershipSelect(s.form);
+    s.value=v;
+  });
+
+  renderCustomers();
+
+  $('#gearTable').innerHTML=table(
+    ['Product ID','Customer','Product','Identifier'],
+    db.gear.map(g=>[g.id,customer(g.customerId),gear(g.id),g.serial||'—'])
+  );
+
+  renderMemberships();
+  renderJobs();
+
+  $('#priceTable').innerHTML=table(
+    ['Category','Essential','Deep'],
+    prices.map(p=>[p[0],p[1]?money(p[1]):'Quote required',p[2]?money(p[2]):'Quote required'])
+  );
+
+  $('#planTable').innerHTML=table(
+    ['Plan','Price','Validity','Deep','Essential'],
+    plans.map(p=>[p.name,money(p.price),p.months+' months',p.deep,p.essential])
+  );
+
+  $('#addonTable').innerHTML=table(
+    ['Add-on','Suggested price'],
+    addons.map(a=>[a[0],typeof a[1]==='number'?money(a[1]):a[1]])
+  );
+
+  let active=db.jobs.filter(j=>!['Completed','Cancelled'].includes(j.status));
+
+  $('#stats').innerHTML=[
+    ['Customers',db.customers.length],
+    ['Registered Gear',db.gear.length],
+    ['Active Jobs',active.length],
+    ['Active Packages',db.memberships.filter(m=>m.end>=new Date().toISOString().slice(0,10)).length],
+    ['Completed Jobs',db.jobs.filter(j=>j.status==='Completed').length]
+  ].map(([k,v])=>`<div class="card"><span class="sub">${k}</span><b>${v}</b></div>`).join('');
+
+  $('#recent').innerHTML=jobTable(active.slice(-10).reverse());
+
+  $('#reportStats').innerHTML=[
+    ['Total recorded job charges',money(db.jobs.reduce((s,j)=>s+Number(j.charge||0)+Number(j.extra||0),0))],
+    ['Membership sales',money(db.memberships.reduce((s,m)=>s+Number(m.price||0),0))],
+    ['Completed jobs',db.jobs.filter(j=>j.status==='Completed').length]
+  ].map(([k,v])=>`<div class="card"><span class="sub">${k}</span><b>${v}</b></div>`).join('');
+
+  $('#completedTable
