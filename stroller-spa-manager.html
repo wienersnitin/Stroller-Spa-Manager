@@ -408,4 +408,177 @@ function render(){
     ['Completed jobs',db.jobs.filter(j=>j.status==='Completed').length]
   ].map(([k,v])=>`<div class="card"><span class="sub">${k}</span><b>${v}</b></div>`).join('');
 
-  $('#completedTable
+  
+.innerHTML=jobTable(db.jobs.filter(j=>j.status==='Completed'));
+}
+
+/* Form handlers */
+$('#customerForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=new FormData(e.currentTarget);
+  db.customers.push({
+    id:id('CUS'),
+    name:String(f.get('name')).trim(),
+    phone:String(f.get('phone')).trim(),
+    address:String(f.get('address')||'').trim(),
+    notes:String(f.get('notes')||'').trim()
+  });
+  e.currentTarget.reset();
+  save();
+  view('customers');
+});
+
+$('#gearForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=new FormData(e.currentTarget);
+  db.gear.push({
+    id:id('GEAR'),
+    customerId:String(f.get('customerId')),
+    category:String(f.get('category')),
+    brand:String(f.get('brand')||''),
+    model:String(f.get('model')).trim(),
+    color:String(f.get('color')||''),
+    serial:String(f.get('serial')||''),
+    notes:String(f.get('notes')||'')
+  });
+  e.currentTarget.reset();
+  save();
+  view('gear');
+});
+
+$('#membershipForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=new FormData(e.currentTarget);
+  const p=plans.find(x=>x.id===f.get('planId'));
+  const start=String(f.get('start'));
+  if(!p)return;
+
+  db.memberships.push({
+    id:id('PKG'),
+    customerId:String(f.get('customerId')),
+    gearId:String(f.get('gearId')),
+    planId:p.id,
+    planName:p.name,
+    price:p.price,
+    months:p.months,
+    deepTotal:p.deep,
+    essentialTotal:p.essential,
+    deepUsed:0,
+    essentialUsed:0,
+    start,
+    end:addMonths(start,p.months),
+    paymentRef:String(f.get('paymentRef')||''),
+    notes:String(f.get('notes')||'')
+  });
+  e.currentTarget.reset();
+  save();
+  view('memberships');
+});
+
+$('#jobForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=new FormData(e.currentTarget);
+
+  db.jobs.push({
+    id:id('JOB'),
+    customerId:String(f.get('customerId')),
+    gearId:String(f.get('gearId')),
+    service:String(f.get('service')),
+    membershipId:String(f.get('membershipId')||''),
+    date:String(f.get('date')),
+    logistics:String(f.get('logistics')||''),
+    charge:Number(f.get('charge')||0),
+    extra:Number(f.get('extra')||0),
+    notes:String(f.get('notes')||''),
+    status:'Booked'
+  });
+
+  e.currentTarget.reset();
+  all('input[type="date"]').forEach(x=>{
+    x.value=new Date().toISOString().slice(0,10);
+  });
+  save();
+  view('jobs');
+});
+
+/* Backup and restore */
+function downloadFile(name,content,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=name;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function exportData(){
+  downloadFile(
+    'stroller-spa-backup.json',
+    JSON.stringify(db,null,2),
+    'application/json'
+  );
+}
+
+function restoreData(event){
+  const file=event.target.files?.[0];
+  if(!file)return;
+
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      for(const key of Object.keys(blank())){
+        if(!Array.isArray(data[key])){
+          throw new Error('Invalid backup file');
+        }
+      }
+
+      if(!confirm('Backup import will replace local records. Continue?')){
+        event.target.value='';
+        return;
+      }
+
+      db=data;
+      save();
+      alert('Backup restored successfully.');
+    }catch(error){
+      alert('Restore failed: '+error.message);
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV(){
+  const headers=[
+    'Job ID','Date','Customer','Gear','Service',
+    'Status','Charge','Extra','Notes'
+  ];
+
+  const rows=db.jobs.map(j=>[
+    j.id,j.date,customer(j.customerId),gear(j.gearId),
+    j.service,j.status,j.charge,j.extra,j.notes
+  ]);
+
+  const csv=[headers,...rows].map(row=>
+    row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')
+  ).join('\r\n');
+
+  downloadFile('stroller-spa-jobs.csv',csv,'text/csv;charset=utf-8');
+}
+
+function clearData(){
+  if(!confirm('Delete all local records? Export a backup first if needed.')){
+    return;
+  }
+  db=blank();
+  save();
+}
+
+/* Start dashboard */
+render();
+
+if(typeof loadLiveBookings==='function'){
+  loadLiveBookings();
+}
