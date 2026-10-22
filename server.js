@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
@@ -14,6 +13,11 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+if (!process.env.ADMIN_API_KEY) {
+  console.error('ADMIN_API_KEY is missing. Set it in Render Environment.');
+  process.exit(1);
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -24,11 +28,17 @@ const pool = new Pool({
 
 const app = express();
 
+// Render HTTPS proxy support
+app.set('trust proxy', 1);
+
 const statuses = [
   'requested', 'confirmed', 'pickup_scheduled', 'received',
   'inspection', 'cleaning', 'drying', 'quality_check',
   'ready', 'completed', 'cancelled'
 ];
+
+const COOKIE_NAME = 'spa_admin';
+const SESSION_SECONDS = 8 * 60 * 60;
 
 const id = prefix =>
   prefix + '-' + crypto.randomBytes(5).toString('hex').toUpperCase();
@@ -47,6 +57,81 @@ const addMonths = (d, m) => {
 
 const err = (res, code, message) =>
   res.status(code).json({ error: message });
+
+function safeEqual(a, b) {
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+
+  return left.length === right.length &&
+    crypto.timingSafeEqual(left, right);
+}
+
+function makeSessionToken(expiry) {
+  const expiryText = String(expiry);
+
+  const signature = crypto
+    .createHmac('sha256', process.env.ADMIN_API_KEY)
+    .update(expiryText)
+    .digest('hex');
+
+  return `${expiryText}.${signature}`;
+}
+
+function getAdminCookieToken(req) {
+  const cookies = req.headers.cookie || '';
+  const match = cookies.match(
+    /(?:^|;\s*)spa_admin=([^;]+)/
+  );
+
+  if (!match) return '';
+
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return '';
+  }
+}
+
+function verifyAdminCookie(req) {
+  const token = getAdminCookieToken(req);
+  if (!token) return false;
+
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+
+  const [expiryText, signature] = parts;
+  const expiry = Number(expiryText);
+
+  if (
+    !Number.isSafeInteger(expiry) ||
+    expiry <= Math.floor(Date.now() / 1000)
+  ) {
+    return false;
+  }
+
+  const expected = makeSessionToken(expiry);
+
+  return safeEqual(signature, expected.split('.')[1]);
+}
+
+function setAdminCookie(res, token) {
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: SESSION_SECONDS * 1000
+  });
+}
+
+function clearAdminCookie(res) {
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/'
+  });
+}
 
 app.use(helmet());
 
@@ -70,10 +155,7 @@ app.post(
       .update(req.body)
       .digest('base64');
 
-    if (
-      given.length !== expected.length ||
-      !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))
-    ) {
+    if (!safeEqual(given, expected)) {
       return err(res, 401, 'Invalid signature');
     }
 
@@ -124,20 +206,25 @@ app.post(
 
       const customerId = customer.rows[0].id;
 
-      const variants = {
-        [String(process.env.SHOPIFY_STANDARD_VARIANT_ID)]: {
+      const variants = {};
+
+      if (process.env.SHOPIFY_STANDARD_VARIANT_ID) {
+        variants[String(process.env.SHOPIFY_STANDARD_VARIANT_ID)] = {
           plan: 'standard',
           deep: 2,
           essential: 2,
           months: 12
-        },
-        [String(process.env.SHOPIFY_PREMIUM_VARIANT_ID)]: {
+        };
+      }
+
+      if (process.env.SHOPIFY_PREMIUM_VARIANT_ID) {
+        variants[String(process.env.SHOPIFY_PREMIUM_VARIANT_ID)] = {
           plan: 'premium',
           deep: 4,
           essential: 2,
           months: Number(process.env.PREMIUM_MONTHS || 18)
-        }
-      };
+        };
+      }
 
       for (const line of order.line_items || []) {
         const cfg = variants[String(line.variant_id)];
@@ -182,7 +269,9 @@ app.post(
 );
 
 app.use(express.json({ limit: '30kb' }));
+app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
+// Public API rate limit
 app.use('/api/public', rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 12,
@@ -258,20 +347,131 @@ app.post('/api/public/bookings', async (req, res) => {
   }
 });
 
-// Basic admin API key protection
+// Staff login rate limit
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Try again later.' }
+});
+
+// Staff login page
+app.get('/login', (req, res) => {
+  if (verifyAdminCookie(req)) return res.redirect('/');
+
+  res.setHeader('Cache-Control', 'no-store');
+  res.type('html').send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stroller Spa Manager - Staff Login</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #f6f7f9;
+      font-family: Arial, sans-serif;
+      color: #24323b;
+    }
+    main {
+      width: 100%;
+      max-width: 400px;
+      padding: 30px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 10px 35px #24323b12;
+    }
+    h1 { font-size: 24px; margin: 0 0 8px; }
+    p { color: #687680; line-height: 1.5; }
+    label { display: block; margin: 22px 0 8px; font-weight: bold; }
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cfd5da;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 13px;
+      border: 0;
+      border-radius: 8px;
+      background: #e86d87;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Stroller Spa Manager</h1>
+    <p>Enter your staff access key to continue.</p>
+    <form method="post" action="/login">
+      <label for="adminKey">Staff access key</label>
+      <input
+        id="adminKey"
+        name="adminKey"
+        type="password"
+        autocomplete="current-password"
+        required
+        maxlength="500"
+      >
+      <button type="submit">Sign in</button>
+    </form>
+  </main>
+</body>
+</html>`);
+});
+
+// Process staff login
+app.post('/login', loginLimiter, (req, res) => {
+  const key = process.env.ADMIN_API_KEY || '';
+  const got = String(req.body?.adminKey || '');
+
+  if (!key || !safeEqual(got, key)) {
+    return res.status(401).type('html').send(`<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login failed</title></head>
+<body style="font-family:Arial,sans-serif;padding:30px">
+  <h2>Login failed</h2>
+  <p>The access key was incorrect.</p>
+  <p><a href="/login">Return to login</a></p>
+</body>
+</html>`);
+  }
+
+  const expiry = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
+  setAdminCookie(res, makeSessionToken(expiry));
+  res.setHeader('Cache-Control', 'no-store');
+  return res.redirect(303, '/');
+});
+
+// Staff logout
+app.post('/logout', (req, res) => {
+  clearAdminCookie(res);
+  res.redirect(303, '/login');
+});
+
+// Admin API protection: secure cookie or existing API key
 const admin = (req, res, next) => {
+  if (verifyAdminCookie(req)) return next();
+
   const key = process.env.ADMIN_API_KEY || '';
   const got = req.get('X-Admin-Key') || '';
 
-  if (
-    !key ||
-    got.length !== key.length ||
-    !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(key))
-  ) {
-    return err(res, 401, 'Unauthorized');
-  }
+  if (key && safeEqual(got, key)) return next();
 
-  next();
+  return err(res, 401, 'Unauthorized');
 };
 
 // Dashboard data
@@ -293,6 +493,7 @@ app.get('/api/admin/dashboard', admin, async (req, res) => {
       )
     ]);
 
+    res.setHeader('Cache-Control', 'no-store');
     res.json({
       bookings: b.rows,
       memberships: m.rows,
@@ -313,6 +514,7 @@ app.get('/api/admin/memberships', admin, async (req, res) => {
        JOIN customers c ON c.id=m.customer_id
        ORDER BY m.id DESC LIMIT 200`
     );
+    res.setHeader('Cache-Control', 'no-store');
     res.json(r.rows);
   } catch (e) {
     console.error(e);
@@ -574,8 +776,13 @@ app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
   }
 });
 
-// Serve staff dashboard
+// Serve staff dashboard only after login
 app.get('/', (req, res) => {
+  if (!verifyAdminCookie(req)) {
+    return res.redirect('/login');
+  }
+
+  res.setHeader('Cache-Control', 'no-store');
   res.removeHeader('Content-Security-Policy');
   res.sendFile(process.cwd() + '/stroller-spa-manager.html');
 });
@@ -586,14 +793,10 @@ app.get('/health', async (req, res) => {
     await pool.query('SELECT 1');
     res.json({ ok: true, database: 'connected' });
   } catch (e) {
-   console.error('Health DB check failed:', {
-  message: e.message,
-  code: e.code,
-  databaseHost: new URL(process.env.DATABASE_URL).hostname,
-  databaseUser: decodeURIComponent(
-    new URL(process.env.DATABASE_URL).username
-  )
-});
+    console.error('Health DB check failed:', {
+      message: e.message,
+      code: e.code
+    });
     res.status(503).json({ ok: false, database: 'disconnected' });
   }
 });
