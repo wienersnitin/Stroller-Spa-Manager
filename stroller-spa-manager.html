@@ -4,441 +4,439 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stroller Spa Manager</title>
-
 <style>
-:root {
-  font-family: Arial, sans-serif;
-  color: #172a43;
-  background: #f4f8fb;
-}
-* { box-sizing: border-box; }
-body { margin: 0; }
-header {
-  background: #102f58;
-  color: white;
-  padding: 18px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-header h1 { margin: 0 0 5px; font-size: 24px; }
-header small { color: #c8e0f4; }
-.layout {
-  display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  min-height: calc(100vh - 80px);
-}
-nav {
-  background: white;
-  border-right: 1px solid #e2e8f0;
-  padding: 15px 10px;
-}
-nav button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  background: transparent;
-  color: #29445d;
-  padding: 12px;
-  margin-bottom: 4px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-nav button.active {
-  background: #e4f5f6;
-  color: #075e6b;
-  font-weight: bold;
-}
-main { padding: 24px; min-width: 0; }
-.view { display: none; }
-.view.active { display: block; }
-h2 { margin-top: 0; }
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
-}
-.card, .panel {
-  background: white;
-  border: 1px solid #e1e9f0;
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 18px;
-  box-shadow: 0 2px 8px #1b3b5710;
-}
-.card b {
-  display: block;
-  font-size: 27px;
-  margin-top: 8px;
-}
-.sub { color: #65758b; font-size: 13px; }
-button, .btn {
-  background: #087e91;
-  color: white;
-  border: 0;
-  border-radius: 7px;
-  padding: 10px 13px;
-  cursor: pointer;
-  font-weight: 600;
-}
-button.secondary { background: #e8f0f4; color: #1c4d62; }
-button.danger { background: #a7324b; }
-input, select, textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #cbd9e2;
-  border-radius: 7px;
-  font: inherit;
-  background: white;
-}
-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-label input, label select, label textarea { margin-top: 5px; }
-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 14px;
-}
-.wide { grid-column: 1 / -1; }
-.toolbar, .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-th, td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #e6edf2;
-  vertical-align: top;
-}
-th { background: #f5f9fc; }
-.panel { overflow-x: auto; }
-.note {
-  padding: 12px;
-  background: #fff9e7;
-  border: 1px solid #f1dea5;
-  border-radius: 9px;
-  margin-bottom: 15px;
-  font-size: 13px;
-}
-.pill {
-  display: inline-block;
-  padding: 4px 8px;
-  background: #e7f5f4;
-  color: #06756d;
-  border-radius: 20px;
-  font-size: 12px;
-}
-@media(max-width:800px) {
-  .layout { display: block; }
-  nav { display: flex; overflow-x: auto; gap: 5px; }
-  nav button { white-space: nowrap; width: auto; }
-  main { padding: 14px; }
-  form { grid-template-columns: 1fr; }
-  .wide { grid-column: auto; }
+:root{font-family:Arial,sans-serif;color:#172a43;background:#f4f8fb}
+*{box-sizing:border-box}
+body{margin:0}
+header{background:#102f58;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+header h1{margin:0 0 5px;font-size:24px}
+header small{color:#c8e0f4}
+.layout{display:grid;grid-template-columns:210px minmax(0,1fr);min-height:calc(100vh - 80px)}
+nav{background:#fff;border-right:1px solid #e2e8f0;padding:15px 10px}
+nav button{display:block;width:100%;text-align:left;border:0;background:transparent;color:#29445d;padding:12px;margin-bottom:4px;border-radius:8px;cursor:pointer}
+nav button.active{background:#e4f5f6;color:#075e6b;font-weight:bold}
+main{padding:24px;min-width:0}
+.view{display:none}
+.view.active{display:block}
+h2{margin-top:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px}
+.card,.panel{background:#fff;border:1px solid #e1e9f0;border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 2px 8px #1b3b5710}
+.card b{display:block;font-size:27px;margin-top:8px}
+.sub{color:#65758b;font-size:13px}
+button{background:#087e91;color:#fff;border:0;border-radius:7px;padding:10px 13px;cursor:pointer;font-weight:600}
+button.secondary{background:#e8f0f4;color:#1c4d62}
+button.danger{background:#a7324b}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cbd9e2;border-radius:7px;font:inherit;background:#fff}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:12px}
+label input,label select,label textarea{margin-top:5px}
+.toolbar,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}
+th,td{padding:10px;text-align:left;border-bottom:1px solid #e6edf2;vertical-align:top}
+th{background:#f5f9fc}
+.panel{overflow-x:auto}
+.note{padding:12px;background:#fff9e7;border:1px solid #f1dea5;border-radius:9px;margin-bottom:15px;font-size:13px}
+.pill{display:inline-block;padding:4px 8px;background:#e7f5f4;color:#06756d;border-radius:20px;font-size:12px}
+.message{padding:12px;border-radius:8px;margin-bottom:14px;background:#edf7ff;color:#17486a}
+.error{background:#fff0f0;color:#8b1f32}
+.muted{color:#65758b}
+.status-select{min-width:160px}
+@media(max-width:800px){
+ .layout{display:block}
+ nav{display:flex;overflow-x:auto;gap:5px}
+ nav button{white-space:nowrap;width:auto}
+ main{padding:14px}
+ header{padding:15px}
 }
 </style>
 </head>
-
 <body>
 <header>
-  <div>
-    <h1>🛒 Stroller <span style="color:#ff9cad">Spa</span> · Manager</h1>
-    <small>Cleaning · Memberships · Repairs · Pickup &amp; Delivery</small>
-  </div>
-  <div>
-    <span id="today"></span>
-    <button class="secondary" onclick="exportData()">Export Backup</button>
-    <button class="secondary" onclick="document.getElementById('restore').click()">Restore</button>
-    <input type="file" id="restore" accept="application/json" hidden onchange="restoreData(event)">
-  </div>
+ <div>
+  <h1>🛒 Stroller <span style="color:#ff9cad">Spa</span> · Manager</h1>
+  <small>Cleaning · Memberships · Repairs · Pickup &amp; Delivery</small>
+ </div>
+ <div class="toolbar">
+  <span id="today"></span>
+  <button class="secondary" onclick="refreshAll()">Refresh data</button>
+  <button class="secondary" onclick="exportBackup()">Export visible data</button>
+  <form method="post" action="/logout" style="display:inline">
+   <button class="danger" type="submit">Logout</button>
+  </form>
+ </div>
 </header>
 
 <div class="layout">
-  <nav id="nav"></nav>
-  <main>
-    <section id="dashboard" class="view">
-      <h2>Operations Dashboard</h2>
-      <div class="note">
-        This standalone version stores records in this browser only.
-        It does not automatically sync records to Supabase.
-      </div>
-      <div class="cards" id="stats"></div>
-      <div class="panel">
-        <h3>Active Jobs</h3>
-        <div id="recent"></div>
-      </div>
-    </section>
+<nav id="nav"></nav>
+<main>
+<div id="message" class="message" hidden></div>
 
-    <section id="customers" class="view">
-      <h2>Customers</h2>
-      <div class="panel">
-        <h3>Add Customer</h3>
-        <form id="customerForm">
-          <label>Name *
-            <input name="name" required>
-          </label>
-          <label>Mobile / WhatsApp *
-            <input name="phone" required>
-          </label>
-          <label>Address
-            <input name="address">
-          </label>
-          <label>Notes
-            <input name="notes">
-          </label>
-          <div class="wide"><button>Add Customer</button></div>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Customer Directory</h3>
-        <input placeholder="Search customers..." oninput="renderCustomers(this.value)">
-        <div id="customerTable"></div>
-      </div>
-    </section>
+<section id="dashboard" class="view active">
+ <h2>Operations Dashboard</h2>
+ <div class="note">Dashboard records are loaded from the Stroller Spa server. Keep this page open using your secure staff login.</div>
+ <div class="cards" id="stats"></div>
+ <div class="panel"><h3>Recent Bookings</h3><div id="recent"></div></div>
+</section>
 
-    <section id="gear" class="view">
-      <h2>Registered Baby Gear</h2>
-      <div class="panel">
-        <h3>Register Product</h3>
-        <form id="gearForm">
-          <label>Customer *
-            <select name="customerId" class="customerOptions" required></select>
-          </label>
-          <label>Category *
-            <select name="category" id="gearCategory" required></select>
-          </label>
-          <label>Brand <input name="brand"></label>
-          <label>Model / Description *
-            <input name="model" required>
-          </label>
-          <label>Colour <input name="color"></label>
-          <label>Serial / Identifier <input name="serial"></label>
-          <label class="wide">Notes / Accessories <input name="notes"></label>
-          <div class="wide"><button>Register Gear</button></div>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Gear Register</h3>
-        <div id="gearTable"></div>
-      </div>
-    </section>
+<section id="customers" class="view">
+ <h2>Customers</h2>
+ <p class="muted">This directory is built from saved booking records. Independent customer creation and editing require a separate backend API.</p>
+ <div class="panel">
+  <label>Search customers
+   <input id="customerSearch" placeholder="Search name, phone, email..." oninput="renderCustomers()">
+  </label>
+  <div id="customerTable"></div>
+ </div>
+</section>
 
-    <section id="memberships" class="view">
-      <h2>Prepaid Packages</h2>
-      <div class="panel">
-        <h3>Activate Membership</h3>
-        <form id="membershipForm">
-          <label>Customer *
-            <select name="customerId" class="customerOptions" required></select>
-          </label>
-          <label>Registered Product *
-            <select name="gearId" class="gearOptions" required></select>
-          </label>
-          <label>Package *
-            <select name="planId" id="planOptions" required></select>
-          </label>
-          <label>Activation Date *
-            <input name="start" type="date" required>
-          </label>
-          <label>Payment Reference <input name="paymentRef"></label>
-          <label>Notes <input name="notes"></label>
-          <div class="wide"><button>Activate Package</button></div>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Membership Register</h3>
-        <div id="membershipTable"></div>
-      </div>
-    </section>
+<section id="gear" class="view">
+ <h2>Registered Baby Gear</h2>
+ <p class="muted">Gear details shown here are retrieved from booking records. Independent gear registration requires a dedicated backend API.</p>
+ <div class="panel">
+  <label>Search baby gear
+   <input id="gearSearch" placeholder="Search category, model, customer..." oninput="renderGear()">
+  </label>
+  <div id="gearTable"></div>
+ </div>
+</section>
 
-    <section id="jobs" class="view">
-      <h2>Bookings &amp; Job Cards</h2>
-      <div class="panel">
-        <h3>Create Booking</h3>
-        <form id="jobForm">
-          <label>Customer *
-            <select name="customerId" class="customerOptions" required></select>
-          </label>
-          <label>Baby Gear *
-            <select name="gearId" class="gearOptions" required></select>
-          </label>
-          <label>Service *
-            <select name="service" required>
-              <option>Essential Cleaning</option>
-              <option>Deep Cleaning</option>
-              <option>Repair Inspection</option>
-              <option>Repair Work</option>
-              <option>Other Service</option>
-            </select>
-          </label>
-          <label>Prepaid Membership
-            <select name="membershipId" class="membershipOptions"></select>
-          </label>
-          <label>Booking Date *
-            <input type="date" name="date" required>
-          </label>
-          <label>Pickup / Drop-off
-            <select name="logistics">
-              <option>Customer drop-off</option>
-              <option>Pickup requested</option>
-              <option>Store collection</option>
-            </select>
-          </label>
-          <label>Service Charge (₹)
-            <input type="number" name="charge" min="0" value="0">
-          </label>
-          <label>Additional Charges (₹)
-            <input type="number" name="extra" min="0" value="0">
-          </label>
-          <label class="wide">Condition / Accessories / Approval Notes
-            <textarea name="notes" rows="2"></textarea>
-          </label>
-          <div class="wide"><button>Create Job Card</button></div>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Jobs &amp; Status</h3>
-        <div id="jobTable"></div>
-      </div>
-    </section>
+<section id="memberships" class="view">
+ <h2>Prepaid Packages</h2>
+ <div class="panel"><div id="membershipTable"></div></div>
+</section>
 
-    <section id="catalog" class="view">
-      <h2>Service &amp; Package Catalogue</h2>
-      <div class="panel">
-        <h3>Cleaning Prices</h3>
-        <div id="priceTable"></div>
-      </div>
-      <div class="panel">
-        <h3>Membership Plans</h3>
-        <div id="planTable"></div>
-      </div>
-      <div class="panel">
-        <h3>Common Add-ons</h3>
-        <div id="addonTable"></div>
-      </div>
-    </section>
+<section id="jobs" class="view">
+ <h2>Bookings &amp; Job Cards</h2>
+ <p class="muted">Confirm new requests, create job cards and update job progress. New customer bookings should currently be submitted through your Shopify booking form.</p>
+ <div class="panel"><h3>Bookings</h3><div id="bookingTable"></div></div>
+ <div class="panel"><h3>Job Cards</h3><div id="jobTable"></div></div>
+</section>
 
-    <section id="reports" class="view">
-      <h2>Reports &amp; Data</h2>
-      <div class="cards" id="reportStats"></div>
-      <div class="panel">
-        <h3>Completed Services</h3>
-        <div id="completedTable"></div>
-      </div>
-      <div class="panel">
-        <h3>Data Management</h3>
-        <div class="toolbar">
-          <button onclick="exportData()">Download JSON Backup</button>
-          <button class="secondary" onclick="exportCSV()">Download Jobs CSV</button>
-          <button class="danger" onclick="clearData()">Delete All Local Data</button>
-        </div>
-      </div>
-    </section>
-  </main>
+<section id="catalog" class="view">
+ <h2>Service &amp; Package Catalogue</h2>
+ <div class="note">Prices below are reference prices displayed by this HTML file. They are not saved in the database or automatically applied to bookings.</div>
+ <div class="panel"><h3>Cleaning Prices (₹)</h3><div id="priceTable"></div></div>
+ <div class="panel"><h3>Membership Plans</h3><div id="planTable"></div></div>
+ <div class="panel"><h3>Common Add-ons (₹)</h3><div id="addonTable"></div></div>
+</section>
+
+<section id="reports" class="view">
+ <h2>Reports &amp; Data</h2>
+ <div class="cards" id="reportStats"></div>
+ <div class="panel"><h3>Completed Services</h3><div id="completedTable"></div></div>
+ <div class="panel"><h3>Backup</h3><button onclick="exportBackup()">Download JSON of currently loaded server data</button></div>
+</section>
+</main>
 </div>
 
 <script>
 'use strict';
 
-const categories = [
-  'Stroller',
-  'Travel System (Stroller + Infant Car Seat)',
-  'Infant Carry Car Seat (0/0+)',
-  'Car Seat Group 1/2/3',
-  'Bassinet',
-  'Bouncer',
-  'Rocker',
-  'Walker',
-  'High Chair - Adjustable',
-  'High Chair - Wooden',
-  'Mother’s Bag',
-  'Baby Nest',
-  'Sleeping Bag',
-  'Soft Toy - Small',
-  'Soft Toy - Medium',
-  'Soft Toy - Large',
-  'Ride-on / Battery Toy',
-  'Other Baby Gear'
-];
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+const money = v => v == null ? '—' : '₹' + Number(v).toLocaleString('en-IN');
+const date = v => v ? String(v).slice(0,10) : '—';
 
 const prices = [
-  ['Stroller',1999,2499],
-  ['Travel System (Stroller + Infant Car Seat)',null,3499],
-  ['Infant Carry Car Seat (0/0+)',1299,1999],
-  ['Car Seat Group 1/2/3',1299,1999],
-  ['Bassinet',1299,1999],
-  ['Bouncer',1299,1999],
-  ['Rocker',1299,1999],
-  ['Walker',1299,1999],
-  ['High Chair - Adjustable',1499,2299],
-  ['High Chair - Wooden',1799,null],
-  ['Mother’s Bag',599,null],
-  ['Baby Nest',699,null],
-  ['Sleeping Bag',699,null],
-  ['Soft Toy - Small',null,null],
-  ['Soft Toy - Medium',null,null],
-  ['Soft Toy - Large',null,null],
-  ['Ride-on / Battery Toy',null,null],
-  ['Other Baby Gear',null,null]
+ ['Stroller',1999,2499],
+ ['Travel System (Stroller + Infant Car Seat)',null,3499],
+ ['Infant Carry Car Seat (0/0+)',1299,1999],
+ ['Car Seat Group 1/2/3',1299,1999],
+ ['Bassinet',1299,1999],
+ ['Bouncer',1299,1999],
+ ['Rocker',1299,1999],
+ ['Walker',1299,1999],
+ ['High Chair - Adjustable',1499,2299],
+ ['High Chair - Wooden',1799,null],
+ ['Mother’s Bag',599,null],
+ ['Baby Nest',699,null],
+ ['Sleeping Bag',699,null],
+ ['Soft Toy - Small',null,null],
+ ['Soft Toy - Medium',null,null],
+ ['Soft Toy - Large',null,null],
+ ['Ride-on / Battery Toy',null,null],
+ ['Other Baby Gear',null,null]
 ];
 
 const plans = [
-  {
-    id:'travel-premium',
-    name:'Premium Travel System Care',
-    price:18999,
-    months:15,
-    deep:4,
-    essential:2,
-    category:'Travel System (Stroller + Infant Car Seat)'
-  },
-  {
-    id:'travel-standard',
-    name:'Standard Travel System Care',
-    price:12999,
-    months:12,
-    deep:2,
-    essential:2,
-    category:'Travel System (Stroller + Infant Car Seat)'
-  }
+ {name:'Premium Travel System Care',price:18999,months:15,deep:4,essential:2},
+ {name:'Standard Travel System Care',price:12999,months:12,deep:2,essential:2}
 ];
 
 const addons = [
-  ['Deep fabric wash',299],
-  ['Steam sanitization',399],
-  ['UV treatment',299],
-  ['Heavy stain treatment',399]
+ ['Deep fabric wash',299],
+ ['Steam sanitization',399],
+ ['UV treatment',299],
+ ['Heavy stain treatment',399]
 ];
 
-const statuses = [
-  'Booked',
-  'Pickup Scheduled',
-  'Received',
-  'Inspection',
-  'In Service',
-  'Quality Check',
-  'Ready',
-  'Out for Delivery',
-  'Completed'
+const navItems = [
+ ['dashboard','📊 Dashboard'],
+ ['customers','👨‍👩‍👧 Customers'],
+ ['gear','🍼 Baby Gear'],
+ ['memberships','🎟 Packages'],
+ ['jobs','🧽 Job Cards'],
+ ['catalog','📋 Price Catalogue'],
+ ['reports','📈 Reports']
 ];
 
-const $ = selector => document.querySelector(selector);
-const all = selector => [...document.querySelectorAll(selector)];
+let data = {dashboard:null,bookings:[],jobs:[],memberships:[]};
 
-function blank() {
-  return {customers:[],gear:
+function message(text,isError=false) {
+ const el = $('#message');
+ el.textContent = text;
+ el.className = 'message' + (isError ? ' error' : '');
+ el.hidden = false;
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function clearMessage() { $('#message').hidden = true; }
+
+function showView(id) {
+ document.querySelectorAll('.view').forEach(x => x.classList.toggle('active',x.id===id));
+ document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active',x.dataset.view===id));
+ if(id==='customers') renderCustomers();
+ if(id==='gear') renderGear();
+}
+
+$('#nav').innerHTML = navItems.map(([id,label],i) =>
+ `<button data-view="${id}" class="${i===0?'active':''}" onclick="showView('${id}')">${label}</button>`
+).join('');
+
+$('#today').textContent = new Date().toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+
+async function api(url,options={}) {
+ const res = await fetch(url,{
+  ...options,
+  credentials:'same-origin',
+  headers:{'Content-Type':'application/json',...(options.headers||{})}
+ });
+ if(res.status===401) {
+  location.href='/login';
+  throw new Error('Your staff session expired. Please sign in again.');
+ }
+ let body;
+ try { body = await res.json(); } catch { body = {}; }
+ if(!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+ return body;
+}
+
+async function refreshAll() {
+ clearMessage();
+ try {
+  const [dashboard,bookings,jobs,memberships] = await Promise.all([
+   api('/api/admin/dashboard'),
+   api('/api/admin/bookings'),
+   api('/api/admin/jobs'),
+   api('/api/admin/memberships')
+  ]);
+  data = {dashboard,bookings,jobs,memberships};
+  renderDashboard();
+  renderCustomers();
+  renderGear();
+  renderMemberships();
+  renderBookings();
+  renderJobs();
+  renderReports();
+  renderCatalog();
+ } catch(e) {
+  message(e.message || 'Could not load data.',true);
+ }
+}
+
+function table(headers,rows) {
+ if(!rows.length) return '<p class="muted">No records found.</p>';
+ return `<table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+function renderDashboard() {
+ const b = data.dashboard?.bookings || [];
+ const m = data.dashboard?.memberships || [];
+ const recent = data.dashboard?.recent || [];
+ const totalBookings = b.reduce((s,x)=>s+Number(x.count||0),0);
+ const totalMembers = m.reduce((s,x)=>s+Number(x.count||0),0);
+ const requested = b.find(x=>x.status==='requested')?.count || 0;
+ const activeJobs = data.jobs.filter(j=>!['completed','cancelled'].includes(j.job_status)).length;
+ $('#stats').innerHTML = [
+  ['Total bookings',totalBookings],
+  ['New requests',requested],
+  ['Memberships',totalMembers],
+  ['Active job cards',activeJobs]
+ ].map(([a,n])=>`<div class="card"><span class="sub">${a}</span><b>${n}</b></div>`).join('');
+ $('#recent').innerHTML = table(
+  ['Reference','Customer','Phone','Gear','Service','Date','Status'],
+  recent.map(r=>`<tr>
+   <td>${esc(r.reference)}</td><td>${esc(r.name)}</td><td>${esc(r.phone)}</td>
+   <td>${esc(r.category||'—')}</td><td>${esc(r.service)}</td>
+   <td>${date(r.preferred_date)}</td><td><span class="pill">${esc(r.status)}</span></td>
+  </tr>`)
+ );
+}
+
+function customers() {
+ const map = new Map();
+ data.bookings.forEach(b=>{
+  const key = String(b.customer_id ?? b.customer_phone ?? b.customer_name);
+  if(!map.has(key)) map.set(key,{
+   id:b.customer_id,name:b.customer_name,phone:b.customer_phone,email:b.customer_email,
+   bookings:0,gear:new Set()
+  });
+  const c = map.get(key);
+  c.bookings++;
+  if(b.gear_category) c.gear.add(b.gear_category);
+ });
+ return [...map.values()];
+}
+
+function renderCustomers() {
+ const q = ($('#customerSearch')?.value||'').toLowerCase();
+ const rows = customers()
+  .filter(c=>[c.name,c.phone,c.email].join(' ').toLowerCase().includes(q))
+  .map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.email||'—')}</td><td>${c.bookings}</td><td>${esc([...c.gear].join(', ')||'—')}</td></tr>`);
+ $('#customerTable').innerHTML = table(['Customer','Phone','Email','Bookings','Gear categories'],rows);
+}
+
+function renderGear() {
+ const q = ($('#gearSearch')?.value||'').toLowerCase();
+ const rows = data.bookings
+  .filter(b=>[b.gear_category,b.gear_model,b.gear_serial,b.customer_name,b.customer_phone].join(' ').toLowerCase().includes(q))
+  .map(b=>`<tr><td>${esc(b.customer_name)}</td><td>${esc(b.customer_phone)}</td><td>${esc(b.gear_category||'—')}</td><td>${esc(b.gear_model||'—')}</td><td>${esc(b.gear_serial||'—')}</td><td>${esc(b.reference)}</td></tr>`);
+ $('#gearTable').innerHTML = table(['Customer','Phone','Category','Model','Serial','Booking ref'],rows);
+}
+
+function renderMemberships() {
+ const rows = data.memberships.map(m=>{
+  const deep = Math.max(0,Number(m.deep_total||0)-Number(m.deep_used||0));
+  const essential = Math.max(0,Number(m.essential_total||0)-Number(m.essential_used||0));
+  return `<tr><td>${esc(m.code||m.id)}</td><td>${esc(m.name)}</td><td>${esc(m.phone)}</td>
+   <td>${esc(m.plan)}</td><td>${date(m.starts_at)}</td><td>${date(m.expires_at)}</td>
+   <td>${deep} / ${Number(m.deep_total||0)}</td><td>${essential} / ${Number(m.essential_total||0)}</td></tr>`;
+ });
+ $('#membershipTable').innerHTML = table(
+  ['Code','Customer','Phone','Plan','Starts','Expires','Deep remaining / total','Essential remaining / total'],rows
+ );
+}
+
+async function confirmBooking(id) {
+ if(!confirm('Confirm this booking?')) return;
+ try {
+  await api(`/api/admin/bookings/${id}/confirm`,{method:'POST',body:'{}'});
+  message('Booking confirmed.');
+  await refreshAll();
+ } catch(e) { message(e.message,true); }
+}
+
+async function createJob(id) {
+ if(!confirm('Create a job card for this booking?')) return;
+ try {
+  await api(`/api/admin/bookings/${id}/job`,{method:'POST',body:'{}'});
+  message('Job card created.');
+  await refreshAll();
+ } catch(e) { message(e.message,true); }
+}
+
+function renderBookings() {
+ const rows = data.bookings.map(b=>{
+  const action = b.status==='requested'
+   ? `<button onclick="confirmBooking(${Number(b.id)})">Confirm</button>`
+   : (['confirmed','received'].includes(b.status)&&!b.job_id
+      ? `<button onclick="createJob(${Number(b.id)})">Create job</button>` : '—');
+  return `<tr><td>${esc(b.reference)}</td>
+   <td>${esc(b.customer_name)}<br><span class="muted">${esc(b.customer_phone)}</span></td>
+   <td>${esc(b.gear_category||'—')}<br>${esc(b.gear_model||'')}</td>
+   <td>${esc(b.service)}</td><td>${date(b.preferred_date)}</td>
+   <td>${esc(b.fulfilment)}</td><td><span class="pill">${esc(b.status)}</span></td>
+   <td>${esc(b.job_status||'—')}</td><td>${action}</td></tr>`;
+ });
+ $('#bookingTable').innerHTML = table(
+  ['Reference','Customer','Gear','Service','Preferred date','Fulfilment','Booking status','Job status','Action'],rows
+ );
+}
+
+const jobStatuses = [
+ 'requested','confirmed','pickup_scheduled','received','inspection',
+ 'cleaning','drying','quality_check','ready','completed','cancelled'
+];
+
+async function updateJob(id,select) {
+ const status = select.value;
+ try {
+  if(status==='completed') {
+   if(!confirm('Complete this job? Membership credits may be deducted if a membership is attached.')) {
+    await refreshAll(); return;
+   }
+   const cleaning = prompt('Enter service type: essential, deep, or repair','essential');
+   if(!cleaning) { await refreshAll(); return; }
+   await api(`/api/admin/jobs/${id}/complete`,{
+    method:'POST',
+    body:JSON.stringify({cleaning_type:cleaning.trim().toLowerCase()})
+   });
+  } else {
+   await api(`/api/admin/jobs/${id}/status`,{
+    method:'POST',body:JSON.stringify({status})
+   });
+  }
+  message('Job updated.');
+  await refreshAll();
+ } catch(e) {
+  message(e.message,true);
+  await refreshAll();
+ }
+}
+
+function renderJobs() {
+ const rows = data.jobs.map(j=>`<tr>
+  <td>#${Number(j.job_id)}</td><td>${esc(j.reference)}</td>
+  <td>${esc(j.customer_name)}<br>${esc(j.customer_phone)}</td>
+  <td>${esc(j.gear_category||'—')} ${esc(j.gear_model||'')}</td>
+  <td>${esc(j.service)}</td>
+  <td><select class="status-select" onchange="updateJob(${Number(j.job_id)},this)">
+   ${jobStatuses.map(s=>`<option value="${s}" ${s===j.job_status?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}
+  </select></td><td>${date(j.job_created_at)}</td></tr>`);
+ $('#jobTable').innerHTML = table(['Job ID','Booking ref','Customer','Gear','Service','Update status','Created'],rows);
+}
+
+function renderReports() {
+ const completed = data.jobs.filter(j=>j.job_status==='completed');
+ $('#reportStats').innerHTML = [
+  ['All bookings',data.bookings.length],['Job cards',data.jobs.length],
+  ['Completed jobs',completed.length],['Membership records',data.memberships.length]
+ ].map(([a,n])=>`<div class="card"><span class="sub">${a}</span><b>${n}</b></div>`).join('');
+ $('#completedTable').innerHTML = table(
+  ['Job ID','Reference','Customer','Service','Completed'],
+  completed.map(j=>`<tr><td>${Number(j.job_id)}</td><td>${esc(j.reference)}</td>
+   <td>${esc(j.customer_name)}</td><td>${esc(j.service)}</td><td>${date(j.completed_at)}</td></tr>`)
+ );
+}
+
+function renderCatalog() {
+ $('#priceTable').innerHTML = table(['Category','Essential','Deep'],
+  prices.map(p=>`<tr><td>${esc(p[0])}</td><td>${money(p[1])}</td><td>${money(p[2])}</td></tr>`));
+ $('#planTable').innerHTML = table(['Plan','Price','Duration','Deep credits','Essential credits'],
+  plans.map(p=>`<tr><td>${esc(p.name)}</td><td>${money(p.price)}</td><td>${p.months} months</td><td>${p.deep}</td><td>${p.essential}</td></tr>`));
+ $('#addonTable').innerHTML = table(['Add-on','Price'],
+  addons.map(a=>`<tr><td>${esc(a[0])}</td><td>${money(a[1])}</td></tr>`));
+}
+
+function exportBackup() {
+ const payload = {
+  exported_at:new Date().toISOString(),
+  dashboard:data.dashboard,
+  bookings:data.bookings,
+  jobs:data.jobs,
+  memberships:data.memberships
+ };
+ const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'stroller-spa-visible-data-backup.json';
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+renderCatalog();
+refreshAll();
+</script>
+</body>
+</html>
