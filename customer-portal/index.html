@@ -4,282 +4,393 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stroller Spa | Customer Dashboard</title>
+<title>Stroller Spa | Customer Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <style>
 :root{
-  --navy:#142b40;--teal:#168b91;--ink:#233447;--muted:#82909d;
-  --bg:#f5f8fb;--line:#eaf0f4;--white:#fff;
-  --shadow:0 10px 35px rgba(30,60,80,.07);
+  --purple:#6427c7;
+  --purple-dark:#35116f;
+  --purple-light:#f2eaff;
+  --pink:#fff0f7;
+  --blue:#edf4ff;
+  --green:#eff9ef;
+  --gold:#fff5df;
+  --ink:#24153d;
+  --muted:#837895;
+  --line:#eee6f6;
+  --white:#fff;
+  --shadow:0 8px 28px rgba(69,35,111,.07);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:#fcfaff;color:var(--ink);
+  font-family:'DM Sans',sans-serif;
+}
+a{text-decoration:none;color:inherit}
 button{font:inherit;cursor:pointer}
-.app{min-height:100vh;display:flex}
-.sidebar{width:250px;background:var(--navy);color:white;padding:26px 18px;display:flex;flex-direction:column;flex-shrink:0}
-.brand{display:flex;align-items:center;gap:12px;padding:0 9px 30px}
-.brand-icon{width:43px;height:43px;border-radius:14px;background:#e2f5f2;color:#168b91;display:grid;place-items:center;font-size:23px}
-.brand-name{font-family:Manrope,sans-serif;font-weight:800;font-size:17px;letter-spacing:.5px}
-.brand-sub{font-size:10px;color:#b8cbd6;letter-spacing:2px;margin-top:3px}
-.nav-label{font-size:10px;letter-spacing:1.7px;color:#91a8b8;padding:12px 12px 9px}
-.nav{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:11px;color:#d4e0e8;text-decoration:none;font-size:13px;margin:3px 0;transition:.2s}
-.nav:hover,.nav.active{background:#24465d;color:white}
-.nav.active{box-shadow:inset 3px 0 #4bd0c4}
-.nav-icon{width:20px;text-align:center;font-size:17px}
-.side-bottom{margin-top:auto}
-.help-card{background:#203e54;border:1px solid #34566c;border-radius:15px;padding:16px;margin:15px 3px}
-.help-card strong{font-size:13px}
-.help-card p{font-size:11px;color:#c2d1db;line-height:1.6}
-.help-card button{border:0;background:#fff;color:#18384c;padding:9px 12px;border-radius:8px;font-size:11px;font-weight:700}
-.profile-mini{display:flex;align-items:center;gap:10px;padding:18px 7px 0;border-top:1px solid #345064}
-.avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#f3d7cf}
-.profile-mini strong{font-size:12px;display:block}
-.profile-mini small{font-size:10px;color:#b7c9d5}
-.main{flex:1;min-width:0;padding:27px 34px 40px;max-width:1600px;margin:auto}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:27px;gap:15px}
-.crumb{font-size:12px;color:var(--muted)}
-.crumb b{color:var(--ink)}
-.top-actions{display:flex;align-items:center;gap:13px}
-.search{background:white;border:1px solid var(--line);border-radius:10px;padding:10px 13px;width:210px;font-size:12px;outline:none}
-.icon-btn{height:39px;width:39px;border:1px solid var(--line);background:white;border-radius:11px;font-size:17px;position:relative}
-.dot{position:absolute;width:7px;height:7px;background:#ef7e83;border-radius:50%;top:8px;right:8px}
-.mobile-menu{display:none}
-.welcome{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px}
-.welcome h1{font:800 27px Manrope,sans-serif;margin:0 0 7px;color:#203448}
-.welcome p{margin:0;color:var(--muted);font-size:13px}
-.welcome-actions{display:flex;gap:10px}
-.btn{border:0;border-radius:10px;padding:12px 16px;font-size:12px;font-weight:700}
-.btn-primary{background:var(--teal);color:white;box-shadow:0 6px 14px #168b9130}
-.btn-light{background:white;color:#42596b;border:1px solid var(--line)}
-.hero{position:relative;overflow:hidden;min-height:220px;border-radius:19px;background:linear-gradient(100deg,rgba(18,49,65,.94),rgba(23,85,91,.77)),url("https://images.unsplash.com/photo-1519689680058-324335c77eba?w=1400") center/cover;color:white;padding:29px 32px;display:flex;align-items:center;margin-bottom:22px}
-.hero-copy{max-width:480px;position:relative;z-index:1}
-.eyebrow{font-size:10px;letter-spacing:2px;color:#a8e8dc;font-weight:800}
-.hero h2{font:800 25px Manrope,sans-serif;line-height:1.3;margin:10px 0}
-.hero p{font-size:12px;line-height:1.7;color:#e0edf0;max-width:390px;margin:0 0 17px}
-.hero .btn{background:#fff;color:#1b6267}
-.hero-art{position:absolute;right:30px;bottom:-5px;width:36%;height:90%;object-fit:contain;object-position:center bottom;mix-blend-mode:screen;opacity:.93}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}
-.stat{background:white;border:1px solid var(--line);border-radius:15px;padding:17px;display:flex;align-items:center;gap:13px;box-shadow:var(--shadow)}
-.stat-icon{height:43px;width:43px;border-radius:13px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
-.stat small{font-size:10px;color:var(--muted);display:block;margin-bottom:5px}
-.stat strong{font:800 22px Manrope;color:#23384b}
-.stat em{font-size:10px;color:#27a18a;font-style:normal;margin-left:5px}
-.content-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.85fr);gap:18px}
-.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:18px;min-width:0}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:17px}
-.panel-head h3{font:800 15px Manrope;margin:0;color:#24384b}
-.link{color:var(--teal);font-size:11px;font-weight:700;text-decoration:none}
-.service-card{background:#f5faf9;border:1px solid #e5f1ee;border-radius:13px;padding:16px}
-.service-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.service-top h4{margin:0 0 6px;font-size:14px}
-.service-top p{margin:0;color:var(--muted);font-size:10px}
-.pill{border-radius:30px;padding:6px 10px;font-size:10px;font-weight:700;background:#e2f6eb;color:#27865a;white-space:nowrap}
-.progress{display:flex;align-items:center;margin:23px 0 5px}
-.step{flex:1;position:relative;text-align:center;font-size:9px;color:#83919c}
-.step:before{content:"";display:block;width:24px;height:24px;border-radius:50%;background:#e8eff1;margin:0 auto 7px;border:4px solid #e8eff1}
-.step.done:before{background:#168b91;border-color:#d7eeeb;box-shadow:inset 0 0 0 3px #168b91}
-.step.current:before{background:#fff;border:6px solid #168b91;box-shadow:0 0 0 4px #d8f0ec}
-.step:not(:last-child):after{content:"";height:3px;background:#e4ebed;position:absolute;left:60%;right:-40%;top:10px;z-index:0}
-.step.done:not(:last-child):after{background:#168b91}
-.service-note{font-size:10px;color:#748590;margin-top:14px;line-height:1.6}
-.membership{background:linear-gradient(135deg,#f6f0ff,#edf5ff);border:1px solid #e9e2f7;border-radius:14px;padding:17px}
-.member-top{display:flex;align-items:center;gap:12px}
-.crown{width:43px;height:43px;border-radius:13px;background:#fff3d6;display:grid;place-items:center;font-size:22px}
-.member-top h4{font-size:13px;margin:0 0 4px}
-.member-top p{font-size:10px;color:#798694;margin:0}
-.member-line{display:flex;justify-content:space-between;margin:18px 0 8px;font-size:10px;color:#69798a}
-.bar{height:7px;border-radius:9px;background:#e1e7ed;overflow:hidden}
-.bar span{display:block;height:100%;width:65%;background:linear-gradient(90deg,#8b70d1,#4c9fc1);border-radius:9px}
-.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.quick{border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:10px;transition:.2s}
-.quick:hover{border-color:#9bd5d0;transform:translateY(-2px)}
-.quick span:first-child{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;font-size:17px}
-.quick strong{font-size:11px;display:block}
-.quick small{font-size:9px;color:var(--muted)}
+.layout{min-height:100vh}
+.sidebar{
+  position:fixed;inset:0 auto 0 0;width:240px;
+  background:linear-gradient(180deg,#fff 0%,#fffaff 100%);
+  border-right:1px solid #eee3f7;padding:22px 16px;
+  display:flex;flex-direction:column;z-index:20;
+}
+.brand{text-align:center;padding:2px 0 30px}
+.brand-icon{font-size:42px;color:var(--purple);line-height:1}
+.brand-name{font-family:Manrope,sans-serif;font-size:23px;font-weight:800;letter-spacing:-1px}
+.brand-sub{font-size:10px;letter-spacing:3px;color:var(--purple);font-weight:800;margin-top:3px}
+.nav-label{font-size:11px;letter-spacing:1.4px;font-weight:800;color:#6f5b89;margin:14px 7px 10px}
+.nav a{
+  display:flex;align-items:center;gap:13px;padding:12px 13px;
+  border-radius:14px;margin:3px 0;font-size:14px;font-weight:700;
+  color:#392453;transition:.2s;
+}
+.nav a:hover,.nav a.active{background:linear-gradient(100deg,#6829c8,#874be0);color:#fff}
+.nav-icon{width:20px;text-align:center;font-size:18px}
+.support-card{
+  margin-top:auto;padding:18px 14px;text-align:center;border-radius:20px;
+  background:linear-gradient(145deg,#f5eaff,#fff1f8);border:1px solid #ead8ff;
+}
+.support-card .headset{font-size:32px;color:var(--purple)}
+.support-card strong{display:block;margin:8px 0 5px}
+.support-card p{font-size:12px;line-height:1.6;margin:0 0 12px;color:#655775}
+.support-card a{display:block;background:var(--purple);color:white;border-radius:12px;padding:10px;font-size:12px;font-weight:700}
+.main{margin-left:240px;padding:0 24px 25px;max-width:1800px}
+.topbar{height:66px;display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.profile-mini{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800}
+.profile-mini img{width:38px;height:38px;border-radius:50%;object-fit:cover}
+.profile-mini small{display:block;color:var(--purple);font-size:10px;margin-top:3px}
+.mobile-menu{display:none;border:0;background:white;border-radius:10px;padding:9px 12px;font-size:20px}
+.breadcrumb{font-size:12px;color:#9385a3;margin:0 0 12px}
+.breadcrumb b{color:var(--purple)}
+.hero{
+  min-height:245px;position:relative;overflow:hidden;border-radius:23px;
+  background:#f8e9df url('https://images.unsplash.com/photo-1492725764893-90b379c2b6e7?auto=format&fit=crop&w=1800&q=85') center 43%/cover no-repeat;
+  box-shadow:var(--shadow);
+}
+.hero:before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(255,246,239,.97) 0%,rgba(255,246,239,.88) 39%,rgba(255,246,239,.10) 78%);
+}
+.hero-content{position:relative;z-index:1;padding:43px 32px;max-width:650px}
+.eyebrow{font-size:11px;letter-spacing:2px;color:var(--purple);font-weight:800}
+.hero h1{font-family:Manrope,sans-serif;font-size:34px;line-height:1.2;margin:12px 0 9px;color:#32115f}
+.hero p{font-size:15px;color:#503d64;margin:0 0 22px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:30px;font-size:13px;font-weight:800;border:1px solid var(--purple)}
+.btn.primary{background:var(--purple);color:white}
+.btn.secondary{background:#fff9;color:var(--purple)}
+.section-kicker{font-size:10px;letter-spacing:2px;font-weight:800;color:var(--purple);margin-bottom:7px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 18px}
+.stat{
+  border-radius:18px;padding:17px;display:flex;align-items:center;gap:14px;
+  border:1px solid #e8e2f4;min-height:94px;
+}
+.stat.blue{background:var(--blue);border-color:#dce7ff}
+.stat.green{background:var(--green);border-color:#dcefdc}
+.stat.gold{background:var(--gold);border-color:#f5e8c9}
+.stat.pink{background:var(--pink);border-color:#f6dced}
+.stat-icon{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:#fff9}
+.stat-label{font-size:10px;font-weight:800;letter-spacing:.6px}
+.stat-number{font-family:Manrope;font-size:25px;font-weight:800;margin:2px 0}
+.stat-note{font-size:11px;color:#746984}
+.panel{
+  background:white;border:1px solid var(--line);border-radius:19px;
+  box-shadow:var(--shadow);padding:16px;margin-bottom:15px;
+}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.panel-heading h2{font-family:Manrope;font-size:17px;margin:0}
+.panel-heading a{font-size:12px;color:var(--purple);font-weight:800}
+.service-card{display:grid;grid-template-columns:31% 1fr;gap:18px;align-items:stretch}
+.service-photo{width:100%;height:185px;object-fit:cover;border-radius:15px;background:#f3eaf9}
+.service-info{min-width:0}
+.service-title{font-family:Manrope;font-size:19px;font-weight:800;margin:8px 0 5px}
+.service-meta{font-size:12px;color:var(--muted)}
+.status-pill{display:inline-block;padding:7px 13px;border-radius:30px;background:#f1e6ff;color:#6728c6;font-size:11px;font-weight:800;margin-top:12px}
+.progress{display:flex;align-items:flex-start;margin:22px 0 10px}
+.step{flex:1;text-align:center;position:relative;font-size:10px;font-weight:700;color:#776987}
+.step:not(:last-child):before{content:"";height:3px;background:#e6d9f4;position:absolute;top:11px;left:50%;width:100%;z-index:0}
+.step.done:not(:last-child):before{background:#9b65df}
+.dot{position:relative;z-index:1;margin:0 auto 7px;width:23px;height:23px;border-radius:50%;background:#eee7f5;border:3px solid #d7c9e8}
+.step.done .dot,.step.current .dot{background:var(--purple);border-color:#d8c2f4}
+.step.current .dot{box-shadow:0 0 0 4px #f0e5ff}
+.service-note{background:#f5eaff;color:#4b2c72;padding:10px 12px;border-radius:11px;font-size:11px;line-height:1.5;margin-top:12px}
+.columns{display:grid;grid-template-columns:1.12fr 1.05fr 1fr;gap:14px}
+.columns .panel{min-width:0}
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;white-space:nowrap}
-th{text-align:left;font-size:9px;color:#8a98a4;font-weight:700;padding:10px;border-bottom:1px solid var(--line)}
-td{font-size:10px;padding:13px 10px;border-bottom:1px solid #f0f3f5}
-td strong{font-size:10px}
-.status{padding:5px 8px;border-radius:20px;background:#e8f5f3;color:#258b7d;font-size:9px;font-weight:700}
-.gear-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f3f5}
-.gear-row:last-child{border:0}
-.gear-img{width:55px;height:48px;border-radius:10px;object-fit:cover;background:#f3f5f6}
-.gear-row strong{font-size:11px;display:block;margin-bottom:4px}
-.gear-row small{font-size:9px;color:var(--muted)}
-.promo{background:linear-gradient(110deg,#fff0ed,#fff7ed);border-radius:14px;padding:17px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.promo h4{font:800 13px Manrope;margin:0 0 6px}
-.promo p{font-size:10px;color:#7c7b7c;margin:0;line-height:1.5}
-.promo span{font-size:32px}
-.footer{text-align:center;color:#9aa6af;font-size:10px;padding:10px}
-.toast{position:fixed;bottom:22px;right:22px;background:#18384b;color:white;padding:13px 18px;border-radius:11px;font-size:12px;box-shadow:var(--shadow);display:none;z-index:10}
-@media(max-width:1050px){
- .sidebar{width:215px}.main{padding:22px}.stats{grid-template-columns:repeat(2,1fr)}
- .hero-art{width:32%;opacity:.7}
+table{border-collapse:collapse;width:100%;font-size:11px;white-space:nowrap}
+th{text-align:left;color:#786b88;font-size:9px;letter-spacing:.5px;background:#faf7fd;padding:11px 8px}
+td{padding:13px 8px;border-bottom:1px solid #f0ebf5}
+.tag{padding:5px 8px;border-radius:20px;font-size:10px;font-weight:800;background:#f0e5ff;color:#6829c8}
+.tag.done{background:#e5f7e9;color:#21834a}
+.gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gear-card{border:1px solid #eee8f4;border-radius:14px;overflow:hidden;background:#fff}
+.gear-card img{width:100%;height:110px;object-fit:cover;display:block;background:#f5f0f8}
+.gear-copy{padding:9px}
+.gear-copy strong{font-size:12px;display:block}
+.gear-copy small{font-size:10px;color:var(--muted)}
+.active-label{font-size:9px;color:#238b4c;background:#e8f8eb;border-radius:20px;padding:4px 7px;float:right;font-weight:800}
+.membership-card{
+  padding:17px;border-radius:15px;color:white;
+  background:linear-gradient(135deg,#4e16a0,#843fe0);
+  min-height:195px;position:relative;overflow:hidden;
+}
+.membership-card:after{content:"♛";position:absolute;right:13px;top:5px;font-size:65px;color:#ffffff19}
+.membership-card h3{font-size:15px;margin:0 0 8px}
+.membership-card p{font-size:10px;color:#eadcff;margin:0 0 17px}
+.member-progress{height:9px;border-radius:10px;background:#ffffff40;margin:9px 0;overflow:hidden}
+.member-progress span{display:block;height:100%;width:66%;background:#e5baff;border-radius:10px}
+.member-foot{display:flex;justify-content:space-between;font-size:10px}
+.remaining{margin-top:14px;background:#ffedbd;color:#583b08;padding:8px;border-radius:9px;font-size:10px;font-weight:800}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.quick{
+  display:flex;align-items:center;gap:12px;padding:15px;border-radius:16px;
+  border:1px solid #eadcf9;background:#f5eaff;transition:.2s;
+}
+.quick:nth-child(2){background:#edf4ff;border-color:#d9e6ff}
+.quick:nth-child(3){background:#eff9ef;border-color:#dcefdc}
+.quick:nth-child(4){background:#fff0f7;border-color:#f5dceb}
+.quick:hover{transform:translateY(-2px)}
+.quick-icon{font-size:23px}
+.quick strong{display:block;font-size:12px}
+.quick small{font-size:10px;color:#796b88}
+.footer{text-align:center;padding:22px 8px;color:#7b6c8b;font-size:11px}
+.footer strong{color:var(--purple)}
+.section-anchor{scroll-margin-top:20px}
+.placeholder-panel{padding:22px;text-align:center;color:#766987}
+.placeholder-panel h3{margin:0 0 7px;color:var(--ink)}
+@media(max-width:1150px){
+  .sidebar{width:215px}.main{margin-left:215px;padding:0 17px}
+  .columns{grid-template-columns:1fr 1fr}.columns .panel:last-child{grid-column:span 2}
 }
 @media(max-width:760px){
- .app{display:block}.sidebar{position:fixed;z-index:20;left:-270px;top:0;bottom:0;width:250px;transition:.25s;box-shadow:10px 0 35px #142b4040}
- .sidebar.open{left:0}.main{padding:18px 14px 30px}
- .mobile-menu{display:inline-grid;place-items:center}.topbar{margin-bottom:22px}
- .search{width:145px}.welcome{align-items:flex-start;flex-direction:column}
- .welcome h1{font-size:22px}.welcome-actions{width:100%}.welcome-actions .btn{flex:1}
- .hero{min-height:220px;padding:23px 20px}.hero h2{font-size:21px;max-width:290px}
- .hero p{max-width:270px}.hero-art{right:-5px;width:42%;opacity:.35}
- .content-grid{grid-template-columns:1fr}.stats{gap:10px}
- .stat{padding:13px;gap:9px}.stat-icon{width:37px;height:37px}
- .stat strong{font-size:19px}.panel{padding:15px}
+  .sidebar{transform:translateX(-100%);transition:.25s;width:260px;box-shadow:var(--shadow)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:0 12px 20px}
+  .mobile-menu{display:block;margin-right:auto}
+  .topbar{height:58px}
+  .hero{min-height:300px;background-position:60% center}
+  .hero:before{background:linear-gradient(90deg,rgba(255,246,239,.96),rgba(255,246,239,.75) 65%,rgba(255,246,239,.15))}
+  .hero-content{padding:30px 20px}
+  .hero h1{font-size:27px}
+  .hero p{font-size:13px;max-width:290px}
+  .stats{grid-template-columns:1fr 1fr;gap:9px}
+  .stat{padding:12px;gap:9px;min-height:80px}
+  .stat-icon{width:40px;height:40px;font-size:19px}
+  .stat-number{font-size:21px}
+  .service-card{grid-template-columns:1fr}
+  .service-photo{height:190px}
+  .columns{grid-template-columns:1fr}
+  .columns .panel:last-child{grid-column:auto}
+  .quick-actions{grid-template-columns:1fr 1fr}
+  .profile-mini{font-size:11px}
+  .panel{padding:13px}
 }
-@media(max-width:390px){.search{width:115px}.stats{grid-template-columns:1fr 1fr}.stat{padding:10px}.stat-icon{display:none}.hero-art{display:none}}
+@media(max-width:390px){
+  .quick-actions{grid-template-columns:1fr}
+  .gear-card img{height:95px}
+  .stat-label{font-size:9px}
+}
 </style>
 </head>
+
 <body>
-<div class="app">
+<div class="layout">
+
 <aside class="sidebar" id="sidebar">
   <div class="brand">
-    <div class="brand-icon">✿</div>
-    <div><div class="brand-name">STROLLER SPA</div><div class="brand-sub">PREMIUM BABY CARE</div></div>
+    <div class="brand-icon">♧</div>
+    <div class="brand-name">STROLLER SPA</div>
+    <div class="brand-sub">PREMIUM BABY CARE</div>
   </div>
+
   <div class="nav-label">CUSTOMER MENU</div>
-  <a class="nav active" href="#home" data-page="Home"><span class="nav-icon">⌂</span>Home</a>
-  <a class="nav" href="#gear" data-page="My Baby Gear"><span class="nav-icon">♧</span>My Baby Gear</a>
-  <a class="nav" href="#bookings" data-page="My Bookings"><span class="nav-icon">▣</span>My Bookings</a>
-  <a class="nav" href="#tracking" data-page="Track Service"><span class="nav-icon">◷</span>Track Service</a>
-  <a class="nav" href="#membership" data-page="My Membership"><span class="nav-icon">♛</span>My Membership</a>
+  <nav class="nav">
+    <a class="active" href="#home"><span class="nav-icon">⌂</span>Home</a>
+    <a href="#gear"><span class="nav-icon">♧</span>My Baby Gear</a>
+    <a href="#bookings"><span class="nav-icon">▣</span>My Bookings</a>
+    <a href="#tracking"><span class="nav-icon">◷</span>Track Service</a>
+    <a href="#membership"><span class="nav-icon">♛</span>My Membership</a>
+  </nav>
+
   <div class="nav-label">MY ACCOUNT</div>
-  <a class="nav" href="#payments" data-page="Payments & Invoices"><span class="nav-icon">▤</span>Payments & Invoices</a>
-  <a class="nav" href="#profile" data-page="My Profile"><span class="nav-icon">◎</span>My Profile</a>
-  <a class="nav" href="#support" data-page="Help & Support"><span class="nav-icon">♡</span>Help & Support</a>
-  <div class="side-bottom">
-    <div class="help-card"><strong>Need a little help?</strong><p>Our baby-care team is always happy to help you.</p><button onclick="notify('Support section will be connected soon.')">Contact Support →</button></div>
-    <div class="profile-mini">
-      <img class="avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Customer profile">
-      <div><strong>Priya Sharma</strong><small>Premium Member</small></div>
-    </div>
+  <nav class="nav">
+    <a href="#payments"><span class="nav-icon">▤</span>Payments & Invoices</a>
+    <a href="#profile"><span class="nav-icon">◎</span>My Profile</a>
+    <a href="#support"><span class="nav-icon">♡</span>Help & Support</a>
+  </nav>
+
+  <div class="support-card" id="support">
+    <div class="headset">♧</div>
+    <strong>Need a little help?</strong>
+    <p>Our baby-care team is always happy to help you.</p>
+    <a href="mailto:support@kidscompany.co.in">Contact Support →</a>
   </div>
 </aside>
 
 <main class="main" id="home">
-  <div class="topbar">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="icon-btn mobile-menu" onclick="toggleMenu()" aria-label="Open menu">☰</button>
-      <div class="crumb">Customer Portal / <b>Dashboard</b></div>
+  <header class="topbar">
+    <button class="mobile-menu" onclick="toggleMenu()" aria-label="Open menu">☰</button>
+    <div class="profile-mini">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Customer profile">
+      <div>Priya Sharma<small>♛ Premium Member</small></div>
+      <span>⌄</span>
     </div>
-    <div class="top-actions">
-      <input class="search" placeholder="⌕  Search anything..." aria-label="Search">
-      <button class="icon-btn" onclick="notify('You are all caught up!')" aria-label="Notifications">♧<i class="dot"></i></button>
-    </div>
-  </div>
+  </header>
 
-  <section class="welcome">
-    <div><h1>Welcome back, Priya! 👋</h1><p>Let's keep your little one's gear fresh, safe and happy.</p></div>
-    <div class="welcome-actions">
-      <button class="btn btn-light" onclick="notify('Your booking history will appear here.')">View Bookings</button>
-      <button class="btn btn-primary" onclick="notify('Online booking will be enabled in a later step.')">＋ Book a Service</button>
-    </div>
-  </section>
+  <div class="breadcrumb">Customer Portal / <b>Dashboard</b></div>
 
+  <!-- HERO BANNER: MOM AND BABY LIFESTYLE IMAGE -->
   <section class="hero">
-    <div class="hero-copy">
+    <div class="hero-content">
       <div class="eyebrow">A LITTLE EXTRA LOVE FOR YOUR LITTLE ONE</div>
-      <h2>Fresh Gear. Happy Baby. Peace of Mind.</h2>
-      <p>Professional cleaning and care for strollers, car seats and all your baby's travel essentials.</p>
-      <button class="btn" onclick="notify('Service booking will be connected soon.')">Explore Our Services →</button>
+      <h1>Welcome back, Priya! 👋</h1>
+      <p>Let's keep your little one's gear fresh, safe and happy.</p>
+      <div class="btn-row">
+        <a class="btn primary" href="#bookings">View Bookings →</a>
+        <a class="btn secondary" href="#bookings">Book a Service</a>
+      </div>
     </div>
-    <img class="hero-art" src="https://images.unsplash.com/photo-1519689680058-324335c77eba?w=700&auto=format&fit=crop" alt="Soft baby care lifestyle">
   </section>
 
   <section class="stats">
-    <div class="stat"><div class="stat-icon" style="background:#e4f4f4">♧</div><div><small>MY BABY GEAR</small><strong>02</strong><em>Registered</em></div></div>
-    <div class="stat"><div class="stat-icon" style="background:#f0eaff">▣</div><div><small>MY BOOKINGS</small><strong>01</strong><em>Active</em></div></div>
-    <div class="stat"><div class="stat-icon" style="background:#fff2df">♛</div><div><small>MEMBERSHIP</small><strong>Active</strong><em>●</em></div></div>
-    <div class="stat"><div class="stat-icon" style="background:#e8f2ff">♡</div><div><small>COMPLETED SERVICES</small><strong>04</strong><em>All time</em></div></div>
+    <div class="stat blue">
+      <div class="stat-icon">♧</div>
+      <div><div class="stat-label">MY BABY GEAR</div><div class="stat-number">02</div><div class="stat-note">Registered</div></div>
+    </div>
+    <div class="stat green">
+      <div class="stat-icon">▣</div>
+      <div><div class="stat-label">MY BOOKINGS</div><div class="stat-number">01</div><div class="stat-note">Active</div></div>
+    </div>
+    <div class="stat gold">
+      <div class="stat-icon">♛</div>
+      <div><div class="stat-label">MEMBERSHIP</div><div class="stat-number">Active</div><div class="stat-note">● Member</div></div>
+    </div>
+    <div class="stat pink">
+      <div class="stat-icon">♡</div>
+      <div><div class="stat-label">COMPLETED SERVICES</div><div class="stat-number">04</div><div class="stat-note">All time</div></div>
+    </div>
   </section>
 
-  <div class="content-grid">
-    <div>
-      <section class="panel" id="tracking">
-        <div class="panel-head"><h3>Track Your Active Service</h3><a class="link" href="#bookings" onclick="notify('Booking details will be available soon.')">View details →</a></div>
-        <div class="service-card">
-          <div class="service-top"><div><h4>Premium Stroller Deep Cleaning</h4><p>Booking ID: SSP-1025 · 04 Nov 2026</p></div><span class="pill">● In Progress</span></div>
-          <div class="progress">
-            <div class="step done">Booked</div><div class="step done">Received</div><div class="step current">Cleaning</div><div class="step">Quality Check</div><div class="step">Delivered</div>
-          </div>
-          <div class="service-note">Your stroller is being carefully cleaned by our care team. We'll update your progress at every stage.</div>
+  <!-- ACTIVE SERVICE: PROFESSIONAL CLEANING IMAGE -->
+  <section class="panel section-anchor" id="tracking">
+    <div class="panel-heading">
+      <h2>✦ Track Your Active Service</h2>
+      <a href="#bookings">View details →</a>
+    </div>
+    <div class="service-card">
+      <img class="service-photo"
+        src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=85"
+        alt="Professional cleaning and care service">
+      <div class="service-info">
+        <div class="service-title">Premium Stroller Deep Cleaning</div>
+        <div class="service-meta">Booking ID: SSP-1025 · 04 Nov 2026</div>
+        <span class="status-pill">● In Progress</span>
+        <div class="progress">
+          <div class="step done"><div class="dot"></div>Booked</div>
+          <div class="step done"><div class="dot"></div>Received</div>
+          <div class="step current"><div class="dot"></div>Cleaning</div>
+          <div class="step"><div class="dot"></div>Quality Check</div>
+          <div class="step"><div class="dot"></div>Delivered</div>
         </div>
-      </section>
+        <div class="service-note">♥ Your stroller is being carefully cleaned by our care team. We'll update your progress at every stage.</div>
+      </div>
+    </div>
+  </section>
 
-      <section class="panel" id="bookings">
-        <div class="panel-head"><h3>Recent Bookings</h3><a class="link" href="#bookings" onclick="notify('All bookings will appear here.')">View all →</a></div>
-        <div class="table-wrap"><table>
+  <div class="columns">
+    <section class="panel section-anchor" id="bookings">
+      <div class="panel-heading">
+        <h2>▣ Recent Bookings</h2>
+        <a href="#bookings">View all →</a>
+      </div>
+      <div class="table-wrap">
+        <table>
           <thead><tr><th>BOOKING ID</th><th>SERVICE</th><th>DATE</th><th>STATUS</th></tr></thead>
           <tbody>
-            <tr><td><strong>#SSP-1025</strong></td><td>Stroller Deep Cleaning</td><td>04 Nov 2026</td><td><span class="status">In Progress</span></td></tr>
-            <tr><td><strong>#SSP-0982</strong></td><td>Car Seat Cleaning</td><td>18 Oct 2026</td><td><span class="status">Completed</span></td></tr>
+            <tr><td><b>#SSP-1025</b></td><td>Stroller Deep Cleaning</td><td>04 Nov 2026</td><td><span class="tag">In Progress</span></td></tr>
+            <tr><td><b>#SSP-0982</b></td><td>Car Seat Cleaning</td><td>18 Oct 2026</td><td><span class="tag done">Completed</span></td></tr>
           </tbody>
-        </table></div>
-      </section>
+        </table>
+      </div>
+    </section>
 
-      <section class="panel" id="gear">
-        <div class="panel-head"><h3>My Baby Gear</h3><a class="link" href="#gear" onclick="notify('Your registered baby gear will appear here.')">Manage gear →</a></div>
-        <div class="gear-row"><img class="gear-img" src="https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?w=180&h=130&fit=crop" alt="Baby stroller"><div><strong>Baby Stroller</strong><small>Premium Travel System · Registered</small></div><span class="pill">Active</span></div>
-        <div class="gear-row"><img class="gear-img" src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=180&h=130&fit=crop" alt="Baby car seat"><div><strong>Baby Car Seat</strong><small>Infant Car Seat · Registered</small></div><span class="pill">Active</span></div>
-      </section>
-    </div>
+    <!-- BABY GEAR IMAGES -->
+    <section class="panel section-anchor" id="gear">
+      <div class="panel-heading">
+        <h2>♧ My Baby Gear</h2>
+        <a href="#gear">Manage gear →</a>
+      </div>
+      <div class="gear-grid">
+        <article class="gear-card">
+          <img src="https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=85" alt="Premium baby stroller">
+          <div class="gear-copy"><span class="active-label">● Active</span><strong>Baby Stroller</strong><small>Premium Travel System</small></div>
+        </article>
+        <article class="gear-card">
+          <img src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=600&q=85" alt="Baby car seat">
+          <div class="gear-copy"><span class="active-label">● Active</span><strong>Baby Car Seat</strong><small>Infant Car Seat</small></div>
+        </article>
+      </div>
+    </section>
 
-    <div>
-      <section class="panel" id="membership">
-        <div class="panel-head"><h3>My Membership</h3><a class="link" href="#membership" onclick="notify('Membership details will be available soon.')">Details →</a></div>
-        <div class="membership">
-          <div class="member-top"><div class="crown">♛</div><div><h4>Premium Travel System Care</h4><p>Member ID: STM-2026-014</p></div></div>
-          <div class="member-line"><span>Services used</span><strong>4 of 6</strong></div>
-          <div class="bar"><span></span></div>
-          <div class="member-line"><span>Membership validity</span><strong>Until 04 Nov 2027</strong></div>
-          <div style="font-size:10px;color:#6c7283">2 services remaining in your plan</div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head"><h3>Quick Actions</h3></div>
-        <div class="quick-grid">
-          <a class="quick" href="#bookings" onclick="notify('New booking will be enabled soon.')"><span style="background:#e5f4f2">＋</span><span><strong>Book a Service</strong><small>Schedule care</small></span></a>
-          <a class="quick" href="#gear" onclick="notify('Add gear will be enabled soon.')"><span style="background:#f1eaff">♧</span><span><strong>Add Baby Gear</strong><small>Register an item</small></span></a>
-          <a class="quick" href="#payments" onclick="notify('Invoices will appear here.')"><span style="background:#fff1df">▤</span><span><strong>My Invoices</strong><small>View payments</small></span></a>
-          <a class="quick" href="#support" onclick="notify('Our support team will be connected soon.')"><span style="background:#e8f1ff">♡</span><span><strong>Get Support</strong><small>We are here to help</small></span></a>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="promo"><div><h4>Care that goes the extra mile ✨</h4><p>Because your baby's comfort<br>is always our priority.</p></div><span>🧸</span></div>
-      </section>
-    </div>
+    <section class="panel section-anchor" id="membership">
+      <div class="panel-heading">
+        <h2>♛ My Membership</h2>
+        <a href="#membership">Details →</a>
+      </div>
+      <div class="membership-card">
+        <h3>Premium Travel System Care</h3>
+        <p>Member ID: STM-2026-014</p>
+        <div class="member-foot"><b>Services used</b><b>4 of 6</b></div>
+        <div class="member-progress"><span></span></div>
+        <div class="member-foot"><span>Validity</span><b>Until 04 Nov 2027</b></div>
+        <div class="remaining">★ 2 services remaining in your plan</div>
+      </div>
+    </section>
   </div>
-  <div class="footer">© 2026 Stroller Spa · Premium Baby Gear Care · Made with care for little ones ♡</div>
+
+  <section class="section-anchor" id="payments">
+    <div class="panel-heading"><h2>⚡ Quick Actions</h2></div>
+    <div class="quick-actions">
+      <a class="quick" href="#bookings"><span class="quick-icon">▣</span><span><strong>Book a Service</strong><small>Schedule care</small></span></a>
+      <a class="quick" href="#gear"><span class="quick-icon">♧</span><span><strong>Add Baby Gear</strong><small>Register an item</small></span></a>
+      <a class="quick" href="#payments"><span class="quick-icon">▤</span><span><strong>My Invoices</strong><small>View payments</small></span></a>
+      <a class="quick" href="#support"><span class="quick-icon">♡</span><span><strong>Get Support</strong><small>We are here to help</small></span></a>
+    </div>
+  </section>
+
+  <section class="panel section-anchor" id="profile">
+    <div class="panel-heading"><h2>◎ My Profile</h2></div>
+    <div class="placeholder-panel">
+      <h3>Customer profile</h3>
+      <p>Your personal details and registered contact information will appear here.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <strong>Care that goes the extra mile ✨</strong><br>
+    Because your baby's comfort is always our priority. ♥<br><br>
+    © 2026 Stroller Spa · Premium Baby Gear Care · Made with care for little ones
+  </footer>
 </main>
 </div>
-<div class="toast" id="toast"></div>
+
 <script>
-function notify(message){
- const toast=document.getElementById('toast');
- toast.textContent=message;
- toast.style.display='block';
- clearTimeout(window.toastTimer);
- window.toastTimer=setTimeout(()=>toast.style.display='none',2800);
+function toggleMenu(){
+  document.getElementById('sidebar').classList.toggle('open');
 }
-function toggleMenu(){document.getElementById('sidebar').classList.toggle('open')}
-document.querySelectorAll('.nav').forEach(link=>{
- link.addEventListener('click',()=>{
-  document.querySelectorAll('.nav').forEach(item=>item.classList.remove('active'));
-  link.classList.add('active');
-  if(window.innerWidth<=760)document.getElementById('sidebar').classList.remove('open');
-  const target=link.getAttribute('href');
-  if(target==='#home')window.scrollTo({top:0,behavior:'smooth'});
-  else{
-   const section=document.querySelector(target);
-   if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
-   else notify(link.dataset.page+' section will be enabled in the next development stage.');
-  }
- });
+document.querySelectorAll('.nav a').forEach(function(link){
+  link.addEventListener('click',function(){
+    document.querySelectorAll('.nav a').forEach(function(item){item.classList.remove('active')});
+    this.classList.add('active');
+    if(window.innerWidth<=760){
+      document.getElementById('sidebar').classList.remove('open');
+    }
+  });
 });
 </script>
 </body>
