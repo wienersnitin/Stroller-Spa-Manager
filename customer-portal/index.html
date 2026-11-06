@@ -396,7 +396,7 @@ td strong{color:#183c2f}
   <section class="stats">
     <div class="stat">
       <div class="stat-icon">♧</div>
-      <div><div class="stat-label">MY BABY GEAR</div><div class="stat-value" id="gearCount">02</div><div class="stat-note">Registered</div></div>
+      <div><div class="stat-label">MY BABY GEAR</div><div class="stat-value" id="gearCount">00</div><div class="stat-note">Registered</div></div>
     </div>
     <div class="stat">
       <div class="stat-icon">▣</div>
@@ -472,7 +472,6 @@ td strong{color:#183c2f}
         </div>
       </div>
 
-      <!-- ADD GEAR FORM -->
       <div class="gear-form" id="gearForm">
         <h3>Register Your Baby Gear</h3>
         <form id="newGearForm">
@@ -518,7 +517,6 @@ td strong{color:#183c2f}
         </form>
       </div>
 
-      <!-- REGISTERED GEAR CARDS APPEAR HERE -->
       <div class="gear-grid" id="gearGrid">
         <div class="gear-empty" id="gearEmpty">
           No baby gear registered yet. Click + Add Gear to register your first item.
@@ -570,38 +568,19 @@ document.querySelectorAll('.nav a').forEach(function(link){
   });
 });
 
-/* MY BABY GEAR FUNCTIONALITY */
-
-const defaultGear = [
-  {
-    id:1,
-    type:"Baby Stroller",
-    brand:"Premium",
-    model:"Premium Travel System",
-    date:"",
-    image:"https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90"
-  },
-  {
-    id:2,
-    type:"Baby Car Seat",
-    brand:"Infant",
-    model:"Infant Car Seat",
-    date:"",
-    image:"https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=600&q=90"
-  }
-];
+/* MY BABY GEAR - FRESH CUSTOMER SETUP */
 
 let babyGear = [];
 
 try {
   const savedGear = localStorage.getItem("strollerSpaBabyGear");
-  babyGear = savedGear ? JSON.parse(savedGear) : defaultGear;
+  babyGear = savedGear ? JSON.parse(savedGear) : [];
 
-  if(!Array.isArray(babyGear)){
-    babyGear = defaultGear;
+  if (!Array.isArray(babyGear)) {
+    babyGear = [];
   }
-} catch(error) {
-  babyGear = defaultGear;
+} catch (error) {
+  babyGear = [];
 }
 
 /* SAVE GEAR IN BROWSER */
@@ -653,10 +632,10 @@ function renderBabyGear(){
     status.textContent = "● Active";
 
     const title = document.createElement("strong");
-    title.textContent = item.type;
+    title.textContent = item.type || "Baby Gear";
 
     const detail = document.createElement("small");
-    detail.textContent = item.brand + " · " + item.model;
+    detail.textContent = (item.brand || "") + " · " + (item.model || "");
 
     const date = document.createElement("small");
     date.textContent = item.date
@@ -675,7 +654,6 @@ function renderBabyGear(){
     info.append(status,title,detail,date,remove);
     card.append(img,info);
     grid.appendChild(card);
-
   });
 
   /* UPDATE GEAR COUNT */
@@ -742,7 +720,6 @@ document.getElementById("newGearForm").addEventListener("submit",function(event)
   closeGearForm();
 
   alert("Your baby gear has been registered successfully!");
-
 });
 
 /* REMOVE BABY GEAR */
