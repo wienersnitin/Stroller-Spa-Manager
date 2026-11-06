@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
@@ -28,13 +29,20 @@ const pool = new Pool({
 
 const app = express();
 
-// Render HTTPS proxy support
 app.set('trust proxy', 1);
 
 const statuses = [
-  'requested', 'confirmed', 'pickup_scheduled', 'received',
-  'inspection', 'cleaning', 'drying', 'quality_check',
-  'ready', 'completed', 'cancelled'
+  'requested',
+  'confirmed',
+  'pickup_scheduled',
+  'received',
+  'inspection',
+  'cleaning',
+  'drying',
+  'quality_check',
+  'ready',
+  'completed',
+  'cancelled'
 ];
 
 const COOKIE_NAME = 'spa_admin';
@@ -46,12 +54,16 @@ const id = prefix =>
 const addMonths = (d, m) => {
   const v = new Date(d);
   const day = v.getUTCDate();
+
   v.setUTCDate(1);
   v.setUTCMonth(v.getUTCMonth() + m);
+
   const last = new Date(
     Date.UTC(v.getUTCFullYear(), v.getUTCMonth() + 1, 0)
   ).getUTCDate();
+
   v.setUTCDate(Math.min(day, last));
+
   return v.toISOString().slice(0, 10);
 };
 
@@ -79,6 +91,7 @@ function makeSessionToken(expiry) {
 
 function getAdminCookieToken(req) {
   const cookies = req.headers.cookie || '';
+
   const match = cookies.match(
     /(?:^|;\s*)spa_admin=([^;]+)/
   );
@@ -94,9 +107,11 @@ function getAdminCookieToken(req) {
 
 function verifyAdminCookie(req) {
   const token = getAdminCookieToken(req);
+
   if (!token) return false;
 
   const parts = token.split('.');
+
   if (parts.length !== 2) return false;
 
   const [expiryText, signature] = parts;
@@ -135,21 +150,48 @@ function clearAdminCookie(res) {
 
 app.use(helmet());
 
+/* CORS CONFIGURATION */
+
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS ||
+  process.env.PUBLIC_ORIGIN ||
+  'https://kidscompany.co.in,https://myspa.kidscompany.co.in,https://stroller-spa-customer-portal.onrender.com,https://spaadmin.kidscompany.co.in'
+)
+  .split(',')
+  .map(origin => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+console.log('Allowed CORS origins:', allowedOrigins);
+
 app.use(cors({
-  origin: (process.env.PUBLIC_ORIGIN || 'https://kidscompany.co.in')
-    .split(',')
-    .map(x => x.trim())
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+      return callback(null, true);
+    }
+
+    console.error('Origin not allowed by CORS:', origin);
+
+    return callback(new Error('Origin not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key']
 }));
 
-// Shopify paid-order webhook
+/* SHOPIFY PAID ORDER WEBHOOK */
+
 app.post(
   '/webhooks/shopify/orders-paid',
   express.raw({ type: 'application/json', limit: '1mb' }),
   async (req, res) => {
     const secret = process.env.SHOPIFY_WEBHOOK_SECRET;
-    if (!secret) return err(res, 503, 'Webhook not configured');
+
+    if (!secret) {
+      return err(res, 503, 'Webhook not configured');
+    }
 
     const given = req.get('X-Shopify-Hmac-Sha256') || '';
+
     const expected = crypto
       .createHmac('sha256', secret)
       .update(req.body)
@@ -160,7 +202,10 @@ app.post(
     }
 
     const eventId = req.get('X-Shopify-Webhook-Id') || '';
-    if (!eventId) return err(res, 400, 'Missing webhook ID');
+
+    if (!eventId) {
+      return err(res, 400, 'Missing webhook ID');
+    }
 
     const client = await pool.connect();
 
@@ -190,7 +235,9 @@ app.post(
         ''
       ).trim();
 
-      if (!phone) throw new Error('Customer phone missing');
+      if (!phone) {
+        throw new Error('Customer phone missing');
+      }
 
       const name = [
         order.customer?.first_name,
@@ -200,7 +247,9 @@ app.post(
         'Shopify customer';
 
       const customer = await client.query(
-        'INSERT INTO customers(name,phone,email) VALUES($1,$2,$3) RETURNING id',
+        `INSERT INTO customers(name, phone, email)
+         VALUES($1, $2, $3)
+         RETURNING id`,
         [name, phone, order.email || null]
       );
 
@@ -228,14 +277,28 @@ app.post(
 
       for (const line of order.line_items || []) {
         const cfg = variants[String(line.variant_id)];
+
         if (!cfg) continue;
 
-        for (let i = 0; i < Math.min(Number(line.quantity) || 0, 20); i++) {
+        for (
+          let i = 0;
+          i < Math.min(Number(line.quantity) || 0, 20);
+          i++
+        ) {
           const start = new Date().toISOString().slice(0, 10);
 
           await client.query(
             `INSERT INTO memberships
-            (customer_id,code,plan,deep_total,essential_total,starts_at,expires_at,shopify_order_id)
+            (
+              customer_id,
+              code,
+              plan,
+              deep_total,
+              essential_total,
+              starts_at,
+              expires_at,
+              shopify_order_id
+            )
             VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
             [
               customerId,
@@ -257,10 +320,13 @@ app.post(
       );
 
       await client.query('COMMIT');
+
       return res.sendStatus(200);
     } catch (e) {
       await client.query('ROLLBACK').catch(() => {});
+
       console.error('Webhook processing failed:', e.message);
+
       return err(res, 422, 'Webhook could not be processed');
     } finally {
       client.release();
@@ -268,10 +334,13 @@ app.post(
   }
 );
 
+/* REQUEST BODY PARSING */
+
 app.use(express.json({ limit: '30kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
-// Public API rate limit
+/* PUBLIC API RATE LIMIT */
+
 app.use('/api/public', rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 12,
@@ -279,7 +348,8 @@ app.use('/api/public', rateLimit({
   legacyHeaders: false
 }));
 
-// Public booking form
+/* PUBLIC BOOKING FORM */
+
 app.post('/api/public/bookings', async (req, res) => {
   const x = req.body || {};
   const s = k => String(x[k] || '').trim();
@@ -311,18 +381,31 @@ app.post('/api/public/bookings', async (req, res) => {
     await client.query('BEGIN');
 
     const c = await client.query(
-      'INSERT INTO customers(name,phone,email) VALUES($1,$2,$3) RETURNING id',
+      `INSERT INTO customers(name, phone, email)
+       VALUES($1, $2, $3)
+       RETURNING id`,
       [s('name'), s('phone'), s('email') || null]
     );
 
     const g = await client.query(
-      'INSERT INTO gear(customer_id,category,model) VALUES($1,$2,$3) RETURNING id',
+      `INSERT INTO gear(customer_id, category, model)
+       VALUES($1, $2, $3)
+       RETURNING id`,
       [c.rows[0].id, s('category'), s('model') || null]
     );
 
     await client.query(
       `INSERT INTO bookings
-      (reference,customer_id,gear_id,service,preferred_date,fulfilment,notes,source)
+      (
+        reference,
+        customer_id,
+        gear_id,
+        service,
+        preferred_date,
+        fulfilment,
+        notes,
+        source
+      )
       VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
       [
         reference,
@@ -337,30 +420,43 @@ app.post('/api/public/bookings', async (req, res) => {
     );
 
     await client.query('COMMIT');
-    return res.status(201).json({ reference, status: 'requested' });
+
+    return res.status(201).json({
+      reference,
+      status: 'requested'
+    });
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});
+
     console.error('Booking create failed:', e.message);
+
     return err(res, 500, 'Booking could not be saved');
   } finally {
     client.release();
   }
 });
 
-// Staff login rate limit
+/* STAFF LOGIN RATE LIMIT */
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
-  message: { error: 'Too many login attempts. Try again later.' }
+  message: {
+    error: 'Too many login attempts. Try again later.'
+  }
 });
 
-// Staff login page
+/* STAFF LOGIN PAGE */
+
 app.get('/login', (req, res) => {
-  if (verifyAdminCookie(req)) return res.redirect('/');
+  if (verifyAdminCookie(req)) {
+    return res.redirect('/');
+  }
 
   res.setHeader('Cache-Control', 'no-store');
+
   res.type('html').send(`<!doctype html>
 <html lang="en">
 <head>
@@ -390,7 +486,11 @@ app.get('/login', (req, res) => {
     }
     h1 { font-size: 24px; margin: 0 0 8px; }
     p { color: #687680; line-height: 1.5; }
-    label { display: block; margin: 22px 0 8px; font-weight: bold; }
+    label {
+      display: block;
+      margin: 22px 0 8px;
+      font-weight: bold;
+    }
     input {
       width: 100%;
       padding: 13px;
@@ -433,7 +533,8 @@ app.get('/login', (req, res) => {
 </html>`);
 });
 
-// Process staff login
+/* PROCESS STAFF LOGIN */
+
 app.post('/login', loginLimiter, (req, res) => {
   const key = process.env.ADMIN_API_KEY || '';
   const got = String(req.body?.adminKey || '');
@@ -441,7 +542,11 @@ app.post('/login', loginLimiter, (req, res) => {
   if (!key || !safeEqual(got, key)) {
     return res.status(401).type('html').send(`<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login failed</title></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login failed</title>
+</head>
 <body style="font-family:Arial,sans-serif;padding:30px">
   <h2>Login failed</h2>
   <p>The access key was incorrect.</p>
@@ -451,60 +556,79 @@ app.post('/login', loginLimiter, (req, res) => {
   }
 
   const expiry = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
+
   setAdminCookie(res, makeSessionToken(expiry));
+
   res.setHeader('Cache-Control', 'no-store');
+
   return res.redirect(303, '/');
 });
 
-// Staff logout
+/* STAFF LOGOUT */
+
 app.post('/logout', (req, res) => {
   clearAdminCookie(res);
   res.redirect(303, '/login');
 });
 
-// Admin API protection: secure cookie or existing API key
+/* ADMIN API PROTECTION */
+
 const admin = (req, res, next) => {
-  if (verifyAdminCookie(req)) return next();
+  if (verifyAdminCookie(req)) {
+    return next();
+  }
 
   const key = process.env.ADMIN_API_KEY || '';
   const got = req.get('X-Admin-Key') || '';
 
-  if (key && safeEqual(got, key)) return next();
+  if (key && safeEqual(got, key)) {
+    return next();
+  }
 
   return err(res, 401, 'Unauthorized');
 };
 
-// Dashboard data
+/* DASHBOARD DATA */
+
 app.get('/api/admin/dashboard', admin, async (req, res) => {
   try {
     const [b, m, recent] = await Promise.all([
       pool.query(
-        'SELECT status,COUNT(*)::int AS count FROM bookings GROUP BY status'
+        `SELECT status, COUNT(*)::int AS count
+         FROM bookings
+         GROUP BY status`
       ),
       pool.query(
-        'SELECT plan,COUNT(*)::int AS count FROM memberships GROUP BY plan'
+        `SELECT plan, COUNT(*)::int AS count
+         FROM memberships
+         GROUP BY plan`
       ),
       pool.query(
-        `SELECT b.*,c.name,c.phone,g.category
+        `SELECT b.*, c.name, c.phone, g.category
          FROM bookings b
-         JOIN customers c ON c.id=b.customer_id
-         LEFT JOIN gear g ON g.id=b.gear_id
-         ORDER BY b.id DESC LIMIT 100`
+         JOIN customers c ON c.id = b.customer_id
+         LEFT JOIN gear g ON g.id = b.gear_id
+         ORDER BY b.id DESC
+         LIMIT 100`
       )
     ]);
 
     res.setHeader('Cache-Control', 'no-store');
+
     res.json({
       bookings: b.rows,
       memberships: m.rows,
       recent: recent.rows
     });
   } catch (e) {
-    console.error(e);
-    err(res, 500, 'Could not load dashboard');
+    console.error('Dashboard load failed:', e.message);
+
+    return err(res, 500, 'Could not load dashboard');
   }
 });
-// List bookings for the staff dashboard
+
+/* LIST BOOKINGS */
+
 app.get('/api/admin/bookings', admin, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -538,14 +662,17 @@ app.get('/api/admin/bookings', admin, async (req, res) => {
     `);
 
     res.setHeader('Cache-Control', 'no-store');
+
     res.json(result.rows);
   } catch (e) {
     console.error('Bookings list failed:', e.message);
-    err(res, 500, 'Could not load bookings');
+
+    return err(res, 500, 'Could not load bookings');
   }
 });
 
-// List existing job cards for the staff dashboard
+/* LIST JOB CARDS */
+
 app.get('/api/admin/jobs', admin, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -582,30 +709,39 @@ app.get('/api/admin/jobs', admin, async (req, res) => {
     `);
 
     res.setHeader('Cache-Control', 'no-store');
+
     res.json(result.rows);
   } catch (e) {
     console.error('Jobs list failed:', e.message);
-    err(res, 500, 'Could not load job cards');
-  }
-});
-// Membership list
-app.get('/api/admin/memberships', admin, async (req, res) => {
-  try {
-    const r = await pool.query(
-      `SELECT m.*,c.name,c.phone
-       FROM memberships m
-       JOIN customers c ON c.id=m.customer_id
-       ORDER BY m.id DESC LIMIT 200`
-    );
-    res.setHeader('Cache-Control', 'no-store');
-    res.json(r.rows);
-  } catch (e) {
-    console.error(e);
-    err(res, 500, 'Could not load memberships');
+
+    return err(res, 500, 'Could not load job cards');
   }
 });
 
-// Confirm booking
+/* MEMBERSHIP LIST */
+
+app.get('/api/admin/memberships', admin, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT m.*, c.name, c.phone
+       FROM memberships m
+       JOIN customers c ON c.id = m.customer_id
+       ORDER BY m.id DESC
+       LIMIT 200`
+    );
+
+    res.setHeader('Cache-Control', 'no-store');
+
+    res.json(r.rows);
+  } catch (e) {
+    console.error('Membership list failed:', e.message);
+
+    return err(res, 500, 'Could not load memberships');
+  }
+});
+
+/* CONFIRM BOOKING */
+
 app.post('/api/admin/bookings/:id/confirm', admin, async (req, res) => {
   try {
     const b = await pool.query(
@@ -613,24 +749,31 @@ app.post('/api/admin/bookings/:id/confirm', admin, async (req, res) => {
       [req.params.id]
     );
 
-    if (!b.rowCount) return err(res, 404, 'Booking not found');
+    if (!b.rowCount) {
+      return err(res, 404, 'Booking not found');
+    }
+
     if (b.rows[0].status !== 'requested') {
       return err(res, 409, 'Not a new request');
     }
 
     await pool.query(
-      "UPDATE bookings SET status='confirmed' WHERE id=$1",
+      `UPDATE bookings
+       SET status='confirmed'
+       WHERE id=$1`,
       [req.params.id]
     );
 
-    res.json({ status: 'confirmed' });
+    return res.json({ status: 'confirmed' });
   } catch (e) {
-    console.error(e);
-    err(res, 500, 'Could not confirm booking');
+    console.error('Booking confirmation failed:', e.message);
+
+    return err(res, 500, 'Could not confirm booking');
   }
 });
 
-// Create job card
+/* CREATE JOB CARD */
+
 app.post('/api/admin/bookings/:id/job', admin, async (req, res) => {
   const client = await pool.connect();
 
@@ -658,27 +801,40 @@ app.post('/api/admin/bookings/:id/job', admin, async (req, res) => {
     );
 
     await client.query(
-      "UPDATE bookings SET status='received' WHERE id=$1",
+      `UPDATE bookings
+       SET status='received'
+       WHERE id=$1`,
       [b.rows[0].id]
     );
 
     await client.query('COMMIT');
-    res.status(201).json({ job_id: j.rows[0].id });
+
+    return res.status(201).json({
+      job_id: j.rows[0].id
+    });
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});
-    if (e.code === '23505') return err(res, 409, 'Job already exists');
-    console.error(e);
-    err(res, 500, 'Could not create job');
+
+    if (e.code === '23505') {
+      return err(res, 409, 'Job already exists');
+    }
+
+    console.error('Job creation failed:', e.message);
+
+    return err(res, 500, 'Could not create job');
   } finally {
     client.release();
   }
 });
 
-// Update job status
+/* UPDATE JOB STATUS */
+
 app.post('/api/admin/jobs/:id/status', admin, async (req, res) => {
   const status = String(req.body?.status || '');
 
-  if (!statuses.includes(status)) return err(res, 400, 'Invalid status');
+  if (!statuses.includes(status)) {
+    return err(res, 400, 'Invalid status');
+  }
 
   try {
     const j = await pool.query(
@@ -686,14 +842,20 @@ app.post('/api/admin/jobs/:id/status', admin, async (req, res) => {
       [req.params.id]
     );
 
-    if (!j.rowCount) return err(res, 404, 'Job not found');
+    if (!j.rowCount) {
+      return err(res, 404, 'Job not found');
+    }
 
     if (['completed', 'cancelled'].includes(j.rows[0].status)) {
       return err(res, 409, 'Job closed');
     }
 
     if (status === 'completed') {
-      return err(res, 400, 'Use complete endpoint for balance deduction');
+      return err(
+        res,
+        400,
+        'Use complete endpoint for balance deduction'
+      );
     }
 
     await pool.query(
@@ -701,74 +863,85 @@ app.post('/api/admin/jobs/:id/status', admin, async (req, res) => {
       [status, req.params.id]
     );
 
-    res.json({ status });
+    return res.json({ status });
   } catch (e) {
-    console.error(e);
-    err(res, 500, 'Could not update job');
+    console.error('Job status update failed:', e.message);
+
+    return err(res, 500, 'Could not update job');
   }
 });
 
-// Assign membership to a job
-app.post('/api/admin/jobs/:id/assign-membership', admin, async (req, res) => {
-  const client = await pool.connect();
+/* ASSIGN MEMBERSHIP TO JOB */
 
-  try {
-    await client.query('BEGIN');
+app.post(
+  '/api/admin/jobs/:id/assign-membership',
+  admin,
+  async (req, res) => {
+    const client = await pool.connect();
 
-    const jr = await client.query(
-      `SELECT j.*,b.customer_id,b.service,b.membership_id
-       FROM jobs j
-       JOIN bookings b ON b.id=j.booking_id
-       WHERE j.id=$1 FOR UPDATE`,
-      [req.params.id]
-    );
+    try {
+      await client.query('BEGIN');
 
-    if (!jr.rowCount) {
-      await client.query('ROLLBACK');
-      return err(res, 404, 'Job not found');
+      const jr = await client.query(
+        `SELECT j.*, b.customer_id, b.service, b.membership_id
+         FROM jobs j
+         JOIN bookings b ON b.id = j.booking_id
+         WHERE j.id=$1
+         FOR UPDATE`,
+        [req.params.id]
+      );
+
+      if (!jr.rowCount) {
+        await client.query('ROLLBACK');
+        return err(res, 404, 'Job not found');
+      }
+
+      const job = jr.rows[0];
+
+      const mr = await client.query(
+        'SELECT * FROM memberships WHERE id=$1',
+        [Number(req.body?.membership_id)]
+      );
+
+      const m = mr.rows[0];
+
+      if (!m || String(m.customer_id) !== String(job.customer_id)) {
+        await client.query('ROLLBACK');
+        return err(res, 400, 'Membership does not belong to customer');
+      }
+
+      if (job.status === 'completed') {
+        await client.query('ROLLBACK');
+        return err(res, 409, 'Job completed');
+      }
+
+      if (!['essential', 'deep', 'membership'].includes(job.service)) {
+        await client.query('ROLLBACK');
+        return err(res, 400, 'Not eligible');
+      }
+
+      await client.query(
+        'UPDATE bookings SET membership_id=$1 WHERE id=$2',
+        [m.id, job.booking_id]
+      );
+
+      await client.query('COMMIT');
+
+      return res.json({ assigned: true });
+    } catch (e) {
+      await client.query('ROLLBACK').catch(() => {});
+
+      console.error('Membership assignment failed:', e.message);
+
+      return err(res, 500, 'Could not assign membership');
+    } finally {
+      client.release();
     }
-
-    const job = jr.rows[0];
-
-    const mr = await client.query(
-      'SELECT * FROM memberships WHERE id=$1',
-      [Number(req.body?.membership_id)]
-    );
-
-    const m = mr.rows[0];
-
-    if (!m || String(m.customer_id) !== String(job.customer_id)) {
-      await client.query('ROLLBACK');
-      return err(res, 400, 'Membership does not belong to customer');
-    }
-
-    if (job.status === 'completed') {
-      await client.query('ROLLBACK');
-      return err(res, 409, 'Job completed');
-    }
-
-    if (!['essential', 'deep', 'membership'].includes(job.service)) {
-      await client.query('ROLLBACK');
-      return err(res, 400, 'Not eligible');
-    }
-
-    await client.query(
-      'UPDATE bookings SET membership_id=$1 WHERE id=$2',
-      [m.id, job.booking_id]
-    );
-
-    await client.query('COMMIT');
-    res.json({ assigned: true });
-  } catch (e) {
-    await client.query('ROLLBACK').catch(() => {});
-    console.error(e);
-    err(res, 500, 'Could not assign membership');
-  } finally {
-    client.release();
   }
-});
+);
 
-// Complete job and deduct membership credit
+/* COMPLETE JOB AND DEDUCT MEMBERSHIP CREDIT */
+
 app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
   const client = await pool.connect();
 
@@ -776,20 +949,32 @@ app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
     await client.query('BEGIN');
 
     const jr = await client.query(
-      `SELECT j.*,b.membership_id,b.service,b.customer_id,b.id AS booking_id
+      `SELECT
+         j.*,
+         b.membership_id,
+         b.service,
+         b.customer_id,
+         b.id AS booking_id
        FROM jobs j
-       JOIN bookings b ON b.id=j.booking_id
-       WHERE j.id=$1 FOR UPDATE`,
+       JOIN bookings b ON b.id = j.booking_id
+       WHERE j.id=$1
+       FOR UPDATE`,
       [req.params.id]
     );
 
-    if (!jr.rowCount) throw new Error('Job not found');
+    if (!jr.rowCount) {
+      throw new Error('Job not found');
+    }
 
     const job = jr.rows[0];
 
-    if (job.status === 'completed') throw new Error('Already completed');
+    if (job.status === 'completed') {
+      throw new Error('Already completed');
+    }
 
-    const cleaning = String(req.body?.cleaning_type || job.service);
+    const cleaning = String(
+      req.body?.cleaning_type || job.service
+    );
 
     if (!['deep', 'essential', 'repair'].includes(cleaning)) {
       throw new Error('Invalid cleaning type');
@@ -797,7 +982,9 @@ app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
 
     if (job.membership_id) {
       if (cleaning === 'repair') {
-        throw new Error('Repairs cannot consume cleaning entitlements');
+        throw new Error(
+          'Repairs cannot consume cleaning entitlements'
+        );
       }
 
       const mr = await client.query(
@@ -824,7 +1011,8 @@ app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
       const upd = await client.query(
         `UPDATE memberships
          SET ${col}_used=${col}_used+1
-         WHERE id=$1 AND ${col}_used<${col}_total`,
+         WHERE id=$1
+         AND ${col}_used < ${col}_total`,
         [m.id]
       );
 
@@ -833,33 +1021,46 @@ app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
       }
 
       await client.query(
-        'INSERT INTO redemptions(membership_id,job_id,service) VALUES($1,$2,$3)',
+        `INSERT INTO redemptions(membership_id, job_id, service)
+         VALUES($1, $2, $3)`,
         [m.id, job.id, cleaning]
       );
     }
 
     await client.query(
-      "UPDATE jobs SET status='completed',completed_at=CURRENT_TIMESTAMP WHERE id=$1",
+      `UPDATE jobs
+       SET status='completed',
+           completed_at=CURRENT_TIMESTAMP
+       WHERE id=$1`,
       [job.id]
     );
 
     await client.query(
-      "UPDATE bookings SET status='completed' WHERE id=$1",
+      `UPDATE bookings
+       SET status='completed'
+       WHERE id=$1`,
       [job.booking_id]
     );
 
     await client.query('COMMIT');
 
-    res.json({ completed: true, cleaning_type: cleaning });
+    return res.json({
+      completed: true,
+      cleaning_type: cleaning
+    });
   } catch (e) {
     await client.query('ROLLBACK').catch(() => {});
-    err(res, 409, e.message);
+
+    console.error('Job completion failed:', e.message);
+
+    return err(res, 409, e.message);
   } finally {
     client.release();
   }
 });
 
-// Serve staff dashboard only after login
+/* SERVE STAFF DASHBOARD AFTER LOGIN */
+
 app.get('/', (req, res) => {
   if (!verifyAdminCookie(req)) {
     return res.redirect('/login');
@@ -867,22 +1068,75 @@ app.get('/', (req, res) => {
 
   res.setHeader('Cache-Control', 'no-store');
   res.removeHeader('Content-Security-Policy');
-  res.sendFile(process.cwd() + '/stroller-spa-manager.html');
+
+  res.sendFile(
+    process.cwd() + '/stroller-spa-manager.html',
+    e => {
+      if (e) {
+        console.error('Dashboard HTML file error:', e.message);
+
+        if (!res.headersSent) {
+          err(res, 500, 'Dashboard file could not be loaded');
+        }
+      }
+    }
+  );
 });
 
-// Database health check
+/* DATABASE HEALTH CHECK */
+
 app.get('/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
-    res.json({ ok: true, database: 'connected' });
+
+    return res.json({
+      ok: true,
+      database: 'connected'
+    });
   } catch (e) {
     console.error('Health DB check failed:', {
       message: e.message,
       code: e.code
     });
-    res.status(503).json({ ok: false, database: 'disconnected' });
+
+    return res.status(503).json({
+      ok: false,
+      database: 'disconnected'
+    });
   }
 });
+
+/* UNKNOWN API ROUTES */
+
+app.use('/api', (req, res) => {
+  return err(res, 404, 'API endpoint not found');
+});
+
+/* GLOBAL ERROR HANDLER */
+
+app.use((error, req, res, next) => {
+  console.error('Request error:', {
+    message: error.message,
+    path: req.originalUrl,
+    method: req.method
+  });
+
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  if (error.type === 'entity.parse.failed') {
+    return err(res, 400, 'Invalid JSON request body');
+  }
+
+  if (error.message === 'Origin not allowed by CORS') {
+    return err(res, 403, 'Origin not allowed');
+  }
+
+  return err(res, 500, 'Server could not process the request');
+});
+
+/* START SERVER */
 
 const server = app.listen(
   Number(process.env.PORT || 3000),
@@ -890,5 +1144,7 @@ const server = app.listen(
 );
 
 process.on('SIGTERM', () => {
-  server.close(() => pool.end().finally(() => process.exit(0)));
+  server.close(() => {
+    pool.end().finally(() => process.exit(0));
+  });
 });
