@@ -4,1154 +4,709 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stroller Spa | Customer Dashboard</title>
+<title>Stroller Spa | Customer Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --green:#103c30;--green2:#174b3b;--gold:#e4b957;--gold2:#f3d78e;
-  --cream:#fbf5eb;--paper:#fffdf8;--ink:#192d25;--muted:#898c7f;
-  --line:#e9dfcf;--shadow:0 4px 14px rgba(55,43,24,.08);
+  --green:#183f35;
+  --green2:#245748;
+  --gold:#c4a46b;
+  --cream:#f7f5ef;
+  --white:#fff;
+  --ink:#263b34;
+  --muted:#7d8982;
+  --line:#e9e8df;
+  --soft:#edf3ee;
+  --shadow:0 8px 30px rgba(27,55,45,.07);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--ink)}
-a{text-decoration:none;color:inherit}
-button{font:inherit;cursor:pointer}
-button:disabled{opacity:.55;cursor:not-allowed}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'DM Sans',sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
 [hidden]{display:none!important}
-
-/* LOGIN AND ACTIVATION */
-.auth-screen{
- min-height:100vh;display:flex;align-items:center;justify-content:center;
- padding:22px;background:linear-gradient(145deg,#103c30,#092d23);
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#173e34,#315e4d)}
+.login-card{background:white;width:100%;max-width:440px;padding:38px;border-radius:22px;box-shadow:0 20px 60px #102c2540}
+.login-logo{text-align:center;color:var(--green);font-family:'Playfair Display',serif;font-size:27px;letter-spacing:2px}
+.login-sub{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 28px}
+.login-card h2{font-family:'Playfair Display',serif;font-size:25px;margin:0 0 8px}
+.login-card p{color:var(--muted);font-size:13px;line-height:1.6}
+.field{margin:16px 0}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:7px;color:#52665d}
+.field input,.field select{width:100%;border:1px solid var(--line);background:#fff;border-radius:9px;padding:13px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--gold)}
+.primary-btn{background:var(--green);color:#fff;border:0;border-radius:9px;padding:13px 18px;font-weight:700;width:100%}
+.primary-btn:hover{background:var(--green2)}
+.text-btn{background:none;border:0;color:var(--green2);font-weight:700;padding:12px 0}
+.login-error{color:#b43b35;font-size:13px;min-height:18px;margin:8px 0}
+.login-note{background:#f5f5ef;border-radius:9px;padding:12px;font-size:12px;color:#6e7b72;line-height:1.5;margin-top:15px}
+#appShell{min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--green);color:#fff;padding:28px 18px;overflow-y:auto;z-index:5}
+.brand{font-family:'Playfair Display',serif;font-size:23px;letter-spacing:2px;text-align:center;padding:4px 0 7px}
+.brand-sub{text-align:center;font-size:9px;letter-spacing:3px;color:#d2bd91;margin-bottom:34px}
+.nav-label{font-size:10px;color:#a9bdb2;letter-spacing:2px;padding:0 13px;margin:20px 0 9px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:0;background:transparent;color:#dce8df;padding:12px 13px;border-radius:9px;margin:3px 0;font-size:13px}
+.nav-btn:hover,.nav-btn.active{background:#ffffff1c;color:#fff}
+.nav-icon{width:20px;text-align:center;font-size:16px}
+.sidebar-bottom{border-top:1px solid #ffffff25;margin-top:30px;padding-top:18px}
+.sidebar-bottom button{width:100%;background:transparent;border:0;color:#e6d5b6;text-align:left;padding:12px;font-size:13px}
+.main{margin-left:250px;padding:30px 38px 50px;max-width:1600px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;gap:15px}
+.eyebrow{font-size:11px;color:var(--gold);letter-spacing:2px;font-weight:700}
+.page-title{font-family:'Playfair Display',serif;font-size:29px;margin:5px 0;color:var(--green)}
+.user-chip{display:flex;align-items:center;gap:10px;background:#fff;padding:9px 14px;border-radius:30px;box-shadow:var(--shadow);font-size:13px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#e5ede5;display:grid;place-items:center;color:var(--green);font-weight:700}
+.hero{border-radius:17px;overflow:hidden;min-height:220px;background:linear-gradient(90deg,#173d34ed,#173d3470),url('https://kidscompany.co.in/cdn/shop/files/strolers.png?v=1789166404&width=2400') center/cover;display:flex;align-items:center;padding:34px;color:#fff;margin-bottom:24px}
+.hero h2{font-family:'Playfair Display',serif;font-size:34px;margin:8px 0}
+.hero p{max-width:520px;color:#f0eee5;font-size:13px;line-height:1.7}
+.hero .eyebrow{color:#e3c994}
+.hero-btn{display:inline-block;margin-top:10px;padding:11px 18px;border-radius:7px;background:var(--gold);color:#203c31;border:0;font-weight:700;font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:24px}
+.stat,.panel,.content-card{background:#fff;border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.stat-label{font-size:11px;color:var(--muted);font-weight:600}
+.stat-number{font-family:'Playfair Display',serif;font-size:30px;color:var(--green);margin:8px 0 3px}
+.stat-foot{font-size:11px;color:var(--muted)}
+.grid-two{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:20px}
+.panel h3,.content-card h3{font-family:'Playfair Display',serif;font-size:20px;color:var(--green);margin:0 0 15px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.small-link{border:0;background:none;color:var(--green2);font-size:12px;font-weight:700}
+.muted{color:var(--muted);font-size:12px;line-height:1.6}
+.booking-row,.gear-row,.membership-row{padding:13px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.booking-row:last-child,.gear-row:last-child,.membership-row:last-child{border-bottom:0}
+.row-title{font-size:13px;font-weight:700}
+.row-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.status{display:inline-block;padding:6px 9px;border-radius:30px;background:#edf3ee;color:#38634e;font-size:10px;font-weight:700;text-transform:capitalize}
+.status.cancelled{background:#faeeee;color:#a54848}
+.status.completed{background:#eaf4ec;color:#36734b}
+.progress-track{height:7px;background:#e9eee9;border-radius:10px;overflow:hidden;margin:15px 0}
+.progress-fill{height:100%;background:var(--gold);border-radius:10px;width:0}
+.progress-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.section{display:none}
+.section.active{display:block}
+.content-card{margin-bottom:18px}
+.section-intro{font-size:13px;color:var(--muted);margin:-7px 0 18px;line-height:1.6}
+.data-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.data-item{background:#f8f8f4;border-radius:10px;padding:14px}
+.data-item label{display:block;color:var(--muted);font-size:10px;margin-bottom:6px}
+.data-item strong{font-size:13px}
+.action-btn{border:1px solid var(--line);background:white;color:var(--green);border-radius:8px;padding:9px 13px;font-size:11px;font-weight:700}
+.action-btn:hover{border-color:var(--gold)}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.form-grid .field{margin:5px 0}
+.empty{padding:28px 15px;text-align:center;color:var(--muted);font-size:13px;background:#fafaf7;border-radius:10px;line-height:1.7}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:10px;color:var(--muted);letter-spacing:1px}
+.notice{background:#f5f2e9;border:1px solid #eee5d1;border-radius:10px;padding:14px;color:#746444;font-size:12px;line-height:1.6}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--green);color:#fff;padding:13px 18px;border-radius:9px;box-shadow:var(--shadow);z-index:20;font-size:13px}
+.mobile-menu{display:none}
+@media(max-width:1000px){
+ .stats{grid-template-columns:repeat(2,1fr)}
+ .grid-two{grid-template-columns:1fr}
 }
-.auth-card{
- width:100%;max-width:460px;background:#fffdf8;border:1px solid #d9bd7d;
- border-radius:22px;padding:30px;box-shadow:0 15px 50px #0003;
-}
-.auth-brand{text-align:center;margin-bottom:24px}
-.auth-logo{
- width:65px;height:65px;border:2px solid var(--gold);border-radius:50%;
- display:grid;place-items:center;margin:auto auto 12px;color:#a77c2e;font-size:32px;
-}
-.auth-brand h1{font:600 27px 'Playfair Display',serif;color:var(--green);margin:0}
-.auth-brand p{font-size:10px;letter-spacing:3px;color:#a17c37;margin:7px 0}
-.auth-card h2{font:600 23px 'Playfair Display',serif;color:var(--green);margin:0 0 7px}
-.auth-description{font-size:12px;color:#777;line-height:1.6;margin:0 0 20px}
-.auth-field{margin-bottom:14px}
-.auth-field label{display:block;font-size:11px;font-weight:800;margin-bottom:6px}
-.auth-field input{
- width:100%;padding:13px;border:1px solid #dfd2bf;border-radius:9px;
- background:white;font:13px 'DM Sans',sans-serif;
-}
-.auth-submit{
- width:100%;border:0;border-radius:25px;padding:14px;
- background:linear-gradient(90deg,#e8bd61,#f3d68e);
- color:#18392d;font-weight:800;margin-top:5px;
-}
-.auth-switch{text-align:center;font-size:12px;color:#777;margin-top:18px}
-.auth-switch button{border:0;background:none;color:var(--green);font-weight:800;text-decoration:underline}
-.auth-message{display:none;padding:11px;border-radius:8px;margin-bottom:14px;font-size:12px;line-height:1.5}
-.auth-message.show{display:block}
-.auth-message.error{background:#fff0f0;color:#9a2938}
-.auth-message.success{background:#eaf7ed;color:#236c3b}
-.auth-foot{text-align:center;color:#d9c99d;font-size:11px;margin-top:20px}
-.auth-help{font-size:11px;color:#777;text-align:center;line-height:1.6;margin-top:15px}
-
-/* SIDEBAR */
-.sidebar{
- position:fixed;left:0;top:0;bottom:0;width:248px;
- background:linear-gradient(180deg,#103c30,#0b3027);
- color:white;padding:25px 19px;display:flex;flex-direction:column;
- z-index:30;overflow-y:auto;
-}
-.brand{text-align:center;padding:8px 0 31px}
-.brand-logo{
- width:68px;height:68px;border:2px solid var(--gold);border-radius:50%;
- display:grid;place-items:center;margin:0 auto 12px;color:var(--gold);font-size:35px;
-}
-.brand-name{font-family:'Playfair Display',serif;font-size:24px;color:#f5d58a}
-.brand-sub{font-size:9px;letter-spacing:3px;color:#f1d797;margin-top:5px}
-.nav-label{font-size:10px;letter-spacing:1.6px;color:var(--gold);font-weight:800;margin:13px 10px}
-.nav a{
- display:flex;align-items:center;gap:13px;padding:12px 13px;margin:3px 0;
- border-radius:30px;color:#f1f1e9;font-size:13px;font-weight:600;transition:.2s;
-}
-.nav a:hover,.nav a.active{background:linear-gradient(90deg,#e8bd61,#f2d58e);color:#17392d}
-.nav-icon{font-size:19px;width:21px;text-align:center}
-.nav-divider{height:1px;background:#ffffff30;margin:16px 8px}
-.help-card{border:1px solid #b18c49;border-radius:18px;padding:16px 13px;text-align:center;margin-top:24px}
-.help-icon{font-size:30px;color:var(--gold)}
-.help-card h3{font-family:'Playfair Display',serif;color:var(--gold2);font-size:20px;margin:9px 0}
-.help-card p{font-size:11px;color:#e2e9e2;line-height:1.6}
-.help-card a{
- display:block;background:linear-gradient(90deg,#e8bd61,#f4d98f);
- color:#17392d;padding:11px;border-radius:25px;font-size:11px;font-weight:800;
-}
-.sidebar-tag{text-align:center;margin-top:auto;padding-top:23px;color:var(--gold2);font-family:'Playfair Display',serif;font-style:italic;font-size:19px}
-
-.main{margin-left:248px;padding:0 17px 25px;max-width:1900px}
-.topbar{height:68px;display:flex;align-items:center;justify-content:space-between}
-.breadcrumb{font-size:12px;color:#5c695f}
-.breadcrumb b{color:var(--green)}
-.top-profile{display:flex;align-items:center;gap:11px}
-.top-profile img{width:43px;height:43px;border-radius:50%;object-fit:cover;border:2px solid #e8c77b}
-.top-profile strong{display:block;font-size:13px}
-.top-profile small{display:block;color:#9c7635;font-size:10px;margin-top:3px}
-.mobile-menu{display:none;border:1px solid var(--line);background:white;padding:8px 12px;border-radius:8px}
-.logout-btn{border:0;background:#f2e7d8;color:#754b2b;padding:8px 10px;border-radius:18px;font-size:10px;font-weight:800}
-
-/* HERO */
-.hero{
- min-height:240px;border-radius:15px;position:relative;overflow:hidden;
- display:flex;align-items:center;background:#c6c3aa;box-shadow:var(--shadow);
-}
-.hero-photo{
- position:absolute;inset:0;
- background-image:url('https://kidscompany.co.in/cdn/shop/files/strolers.png?v=1789166404&width=2400');
- background-size:cover;background-position:center 42%;
-}
-.hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(251,244,224,.97) 0%,rgba(251,244,224,.90) 40%,rgba(251,244,224,.06) 78%)}
-.hero-content{position:relative;z-index:2;padding:28px 34px;max-width:650px}
-.hero-brand{font-size:14px;letter-spacing:1.4px;font-weight:800;color:var(--green)}
-.hero-brand:after{content:"";display:inline-block;width:90px;height:1px;background:var(--gold);vertical-align:middle;margin-left:12px}
-.hero h1{font-family:'Playfair Display',serif;font-size:42px;line-height:1.13;color:#153e30;margin:12px 0 8px}
-.hero p{font-size:15px;color:#283b31;margin:0 0 20px}
-.hero-actions{display:flex;gap:13px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 22px;border-radius:30px;font-size:12px;font-weight:800}
-.btn-gold{background:linear-gradient(90deg,#e8bd61,#f3d68e);color:#18392d;box-shadow:0 3px 7px #a8864430}
-.btn-outline{border:1px solid var(--green);color:var(--green);background:#fff9}
-.hero-caption{position:absolute;right:23px;top:25px;z-index:2;font-family:'Playfair Display',serif;font-style:italic;color:white;font-size:20px;text-align:right;text-shadow:0 2px 8px #0007}
-
-/* SUMMARY */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:14px 0}
-.stat{min-height:91px;background:linear-gradient(145deg,#fffdf8,#f8efe1);border:1px solid #e8dac5;border-radius:17px;padding:13px 15px;display:flex;align-items:center;gap:13px;box-shadow:var(--shadow)}
-.stat-icon{flex-shrink:0;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:#e8efdc;color:var(--green);font-size:24px}
-.stat:nth-child(3) .stat-icon{background:#f8e9c9;color:#a67a29}
-.stat:nth-child(4) .stat-icon{background:#e4eddf}
-.stat-label{font-size:10px;font-weight:800}
-.stat-value{font-size:25px;font-weight:800;color:#111;margin:2px 0}
-.stat-note{font-size:11px;color:#666b60}
-
-/* PANELS */
-.panel{background:linear-gradient(145deg,#fffefa,#fff9f0);border:1px solid #e8dece;border-radius:15px;padding:15px;box-shadow:var(--shadow)}
-.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.panel-heading h2{font-size:17px;font-weight:800;margin:0;color:#182c24}
-.panel-heading a{font-size:11px;font-weight:800;color:var(--green)}
-.gold-icon{color:#b88d38;font-size:20px;margin-right:7px}
-.feature-grid{display:grid;grid-template-columns:minmax(0,2.15fr) minmax(280px,1fr);gap:13px;margin-bottom:14px}
-.service-panel{min-width:0}
-.service-layout{display:grid;grid-template-columns:45% 1fr;gap:16px}
-.service-image-box{position:relative;min-height:250px}
-.service-image{display:block;width:100%;height:100%;min-height:250px;object-fit:cover;border-radius:12px;background:#e8e5d9}
-.service-info{padding:5px 0}
-.status{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:#f8e4bd;color:#71511d;border-radius:20px;font-size:10px;font-weight:800}
-.status-dot{height:7px;width:7px;background:#38834b;border-radius:50%}
-.service-info h3{font-family:'Playfair Display',serif;font-size:21px;line-height:1.2;margin:9px 0 5px}
-.service-meta{font-size:11px;color:#74776d}
-.progress{display:flex;margin:25px 0 10px}
-.step{flex:1;text-align:center;position:relative;font-size:9px;font-weight:700;color:#3d4c40}
-.step:not(:last-child):after{content:"";height:3px;position:absolute;top:10px;left:50%;width:100%;background:#e1ddd1}
-.step.done:not(:last-child):after{background:#4d9b62}
-.step-dot{width:21px;height:21px;border-radius:50%;position:relative;z-index:1;margin:0 auto 8px;background:#e9e6dd;border:2px solid #d8d3c7}
-.step.done .step-dot,.step.current .step-dot{background:#15513a;border-color:#15513a}
-.step.current .step-dot{outline:4px solid #e8d5a8}
-.service-note{margin-top:15px;padding:11px;background:#eaf0df;border-radius:9px;color:#294c38;font-size:10px;line-height:1.6}
-
-/* MEMBERSHIP */
-.membership-card{position:relative;overflow:hidden;min-height:300px;padding:19px;border-radius:15px;color:white;background:linear-gradient(145deg,#103b2d,#092d23);border:1px solid #b9944d}
-.membership-card:after{content:"";position:absolute;width:180px;height:180px;border:1px solid #c9a75b;border-radius:50%;right:-90px;top:35px;box-shadow:0 0 0 12px #ffffff08,0 0 0 25px #ffffff06}
-.member-head{display:flex;justify-content:space-between;align-items:center;color:var(--gold2);font-size:13px;font-weight:800}
-.member-title{font-family:'Playfair Display',serif;font-size:23px;line-height:1.15;margin:19px 0 10px;position:relative;z-index:2}
-.member-id{font-size:10px;color:#e2e8df}
-.member-progress-row{display:flex;justify-content:space-between;font-size:10px;margin-top:22px}
-.member-progress{height:9px;background:#ffffff35;border-radius:20px;margin:9px 0 15px;overflow:hidden}
-.member-progress span{display:block;width:0;height:100%;background:linear-gradient(90deg,#d7a844,#f3d68c);border-radius:20px}
-.member-validity{font-size:10px;color:#e5e8dc}
-.member-remaining{margin-top:17px;background:linear-gradient(90deg,#d6aa4c,#f2d68f);color:#18382c;text-align:center;padding:10px;border-radius:7px;font-size:10px;font-weight:800}
-
-/* LOWER CARDS */
-.lower-grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:12px}
-.lower-grid>.panel{min-width:0}
-table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:10px}
-.table-scroll{overflow-x:auto}
-th{padding:12px 9px;background:#f4eadc;text-align:left;font-size:9px}
-td{padding:14px 9px;border-bottom:1px solid #ece4d7}
-td strong{color:#183c2f}
-.pill{padding:5px 8px;background:#dceaff;color:#24539b;border-radius:15px;font-size:9px;font-weight:800}
-.pill.completed{background:#d9f1d5;color:#27723b}
-
-/* GEAR */
-.gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.gear-card{border:1px solid #e9dfd1;border-radius:11px;overflow:hidden;background:#fff;position:relative}
-.gear-card img{width:100%;height:125px;display:block;object-fit:cover;background:#eee8dc}
-.gear-info{padding:9px}
-.gear-info strong{font-size:11px;display:block}
-.gear-info small{font-size:9px;color:#777e72;display:block;margin-top:4px}
-.active-tag{float:right;color:#277d3b;background:#dff2dc;border-radius:20px;padding:4px 7px;font-size:8px;font-weight:800}
-.gear-heading-actions{display:flex;align-items:center;gap:9px}
-.add-gear-btn{border:0;border-radius:22px;padding:10px 15px;background:linear-gradient(90deg,#e8bd61,#f3d68e);color:#18392d;font-size:10px;font-weight:800}
-.gear-form{display:none;background:#f8f0e4;border:1px solid #e8dac5;border-radius:13px;padding:15px;margin-bottom:14px}
-.gear-form.open{display:block}
-.gear-form h3{font-family:'Playfair Display',serif;font-size:19px;margin:0 0 13px;color:var(--green)}
-.gear-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.gear-field label{display:block;font-size:10px;font-weight:800;margin-bottom:6px;color:#425448}
-.gear-field input,.gear-field select{width:100%;min-width:0;padding:11px;border:1px solid #dfd2bf;border-radius:8px;background:#fffdf8;font:12px 'DM Sans',sans-serif;color:var(--ink)}
-.gear-form-actions{display:flex;gap:9px;margin-top:13px}
-.gear-form-actions button{border:0;padding:10px 16px;border-radius:22px;font-size:11px;font-weight:800}
-.gear-save{background:var(--green);color:white}
-.gear-cancel{background:#e9dfd1;color:#35483c}
-.gear-empty{display:none;text-align:center;padding:18px 8px;color:#777e72;font-size:11px;grid-column:1/-1}
-
-/* QUICK ACTIONS AND PROFILE */
-.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.quick-card{background:#f5eadf;border:1px solid #e7d9c6;border-radius:14px;padding:13px 8px;text-align:center;transition:.2s}
-.quick-card:hover{transform:translateY(-2px);border-color:#c6a35e}
-.quick-icon{width:52px;height:52px;border-radius:50%;margin:0 auto 9px;display:grid;place-items:center;background:#fff8ec;color:var(--green);font-size:22px}
-.quick-card strong{font-size:10px;display:block}
-.quick-card small{font-size:9px;color:#777b70;display:block;margin-top:4px}
-.quick-heading{font-size:18px;margin:0 0 12px;color:#183d30}
-.footer{text-align:center;color:#898b7e;font-size:10px;line-height:1.8;padding:24px 10px}
-.footer b{color:#174b38}
-.anchor{scroll-margin-top:15px}
-.profile-box{text-align:center;padding:22px;color:#777e72;font-size:12px}
-.profile-form{max-width:520px;margin:auto;text-align:left}
-.profile-form label{display:block;font-size:11px;font-weight:800;margin:12px 0 6px}
-.profile-form input{width:100%;padding:12px;border:1px solid #dfd2bf;border-radius:8px;background:white;font:13px 'DM Sans',sans-serif}
-.profile-form button{margin-top:14px;border:0;background:var(--green);color:white;padding:11px 18px;border-radius:22px;font-weight:800}
-.empty-note{padding:20px;text-align:center;color:#777;font-size:12px;line-height:1.7;background:#faf4e9;border-radius:10px}
-.payment-note{padding:18px;background:#faf4e9;border:1px solid var(--line);border-radius:12px;font-size:12px;line-height:1.7;color:#6c6d62}
-.data-message{display:none;padding:11px;margin:10px 0;border-radius:8px;background:#eaf7ed;color:#236c3b;font-size:12px}
-.data-message.error{background:#fff0f0;color:#9a2938}
-
-@media(max-width:1250px){
- .sidebar{width:220px}.main{margin-left:220px;padding:0 13px 20px}
- .feature-grid{grid-template-columns:1fr}.membership-card{min-height:240px}
- .lower-grid{grid-template-columns:1fr 1fr}
- .lower-grid>.panel:last-child{grid-column:span 2}
-}
-@media(max-width:760px){
- .sidebar{transform:translateX(-100%);transition:.25s;width:255px}
- .sidebar.open{transform:translateX(0);box-shadow:0 0 0 100vmax #10271f80}
- .main{margin-left:0;padding:0 11px 20px}
- .mobile-menu{display:block}.topbar{height:60px}
- .breadcrumb{font-size:10px}.hero{min-height:300px}
- .hero-photo{background-position:60% center}
- .hero-shade{background:linear-gradient(90deg,#fbf3e3f2,#fbf3e3c9 60%,#fbf3e320)}
- .hero-content{padding:23px 18px}.hero h1{font-size:34px}
- .hero p{font-size:12px;max-width:280px;line-height:1.6}
- .hero-caption{font-size:14px;right:10px;top:10px}
- .stats{grid-template-columns:1fr 1fr;gap:8px}
- .stat{padding:10px;gap:8px;min-height:77px}
- .stat-icon{width:40px;height:40px;font-size:18px}
- .stat-value{font-size:21px}.stat-label{font-size:8px}
- .feature-grid{grid-template-columns:1fr}.service-layout{grid-template-columns:1fr}
- .service-image{height:205px;min-height:205px}.service-image-box{min-height:205px}
- .membership-card{min-height:260px}
- .lower-grid{grid-template-columns:1fr}
- .lower-grid>.panel:last-child{grid-column:auto}
- .panel{padding:12px}.quick-grid{grid-template-columns:1fr 1fr}
-}
-@media(max-width:390px){
- .quick-grid{grid-template-columns:1fr 1fr}
- .gear-card img{height:100px}
- .top-profile img{width:35px;height:35px}
- .top-profile strong{font-size:11px}
- .hero h1{font-size:29px}
- .gear-form-grid{grid-template-columns:1fr}
- .gear-heading-actions{gap:5px}.add-gear-btn{padding:9px 10px}
+@media(max-width:700px){
+ .sidebar{width:100%;height:auto;bottom:auto;position:relative;padding:15px}
+ .brand{font-size:19px}
+ .brand-sub{margin-bottom:12px}
+ .nav-label{display:none}
+ .nav-list{display:flex;overflow-x:auto;gap:5px}
+ .nav-btn{width:auto;white-space:nowrap;padding:10px;font-size:11px}
+ .sidebar-bottom{display:none}
+ .main{margin-left:0;padding:20px 14px 40px}
+ .topbar{align-items:flex-start}
+ .page-title{font-size:24px}
+ .hero{min-height:190px;padding:23px}
+ .hero h2{font-size:26px}
+ .stats{gap:10px}
+ .stat{padding:14px}
+ .stat-number{font-size:25px}
+ .data-grid,.form-grid{grid-template-columns:1fr}
+ .login-card{padding:27px 22px}
 }
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN / FIRST-TIME ACTIVATION -->
-<section class="auth-screen" id="authScreen">
- <div class="auth-card">
-  <div class="auth-brand">
-   <div class="auth-logo">♧</div>
-   <h1>STROLLER SPA</h1>
-   <p>PREMIUM BABY CARE</p>
-  </div>
+<!-- CUSTOMER LOGIN / ACTIVATION -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">STROLLER SPA</div>
+    <div class="login-sub">PREMIUM BABY GEAR CARE</div>
 
-  <div id="authMessage" class="auth-message"></div>
-
-  <form id="loginForm">
-   <h2>Welcome Back</h2>
-   <p class="auth-description">Sign in to manage your baby's gear, bookings and membership.</p>
-   <div class="auth-field">
-    <label for="loginPhone">Mobile Number</label>
-    <input id="loginPhone" type="tel" autocomplete="tel" placeholder="Enter registered mobile number" required>
-   </div>
-   <div class="auth-field">
-    <label for="loginPassword">Password</label>
-    <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required>
-   </div>
-   <button class="auth-submit" id="loginButton" type="submit">Sign In to My Account</button>
-   <div class="auth-switch">First time here? <button type="button" onclick="showAuthMode('activate')">Activate your account</button></div>
-  </form>
-
-  <form id="activateForm" hidden>
-   <h2>Activate Your Account</h2>
-   <p class="auth-description">Enter the mobile number registered with Stroller Spa, the activation code shared by our team, and create your password.</p>
-   <div class="auth-field">
-    <label for="activatePhone">Registered Mobile Number</label>
-    <input id="activatePhone" type="tel" autocomplete="tel" placeholder="Enter registered mobile number" required>
-   </div>
-   <div class="auth-field">
-    <label for="activationCodeInput">One-Time Activation Code</label>
-    <input id="activationCodeInput" type="text" autocomplete="one-time-code" maxlength="8" placeholder="Enter 8-character code" required>
-   </div>
-   <div class="auth-field">
-    <label for="newPassword">Create Password</label>
-    <input id="newPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Minimum 8 characters" required>
-   </div>
-   <div class="auth-field">
-    <label for="confirmPassword">Confirm Password</label>
-    <input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Enter password again" required>
-   </div>
-   <button class="auth-submit" id="activateButton" type="submit">Activate My Account</button>
-   <div class="auth-switch">Already activated? <button type="button" onclick="showAuthMode('login')">Back to Sign In</button></div>
-  </form>
-
-  <div class="auth-help">Need an activation code? Please contact the Stroller Spa team.</div>
- </div>
-</section>
-
-<!-- CUSTOMER PORTAL -->
-<div id="appShell" hidden>
-
-<aside class="sidebar" id="sidebar">
- <div class="brand">
-  <div class="brand-logo">♧</div>
-  <div class="brand-name">STROLLER SPA</div>
-  <div class="brand-sub">PREMIUM BABY CARE</div>
- </div>
-
- <div class="nav-label">CUSTOMER MENU</div>
- <nav class="nav">
-  <a class="active" href="#home"><span class="nav-icon">⌂</span>Home</a>
-  <a href="#gear"><span class="nav-icon">♧</span>My Baby Gear</a>
-  <a href="#bookings"><span class="nav-icon">▣</span>My Bookings</a>
-  <a href="#tracking"><span class="nav-icon">◷</span>Track Service</a>
-  <a href="#membership"><span class="nav-icon">♛</span>My Membership</a>
- </nav>
-
- <div class="nav-divider"></div>
- <div class="nav-label">MY ACCOUNT</div>
- <nav class="nav">
-  <a href="#payments"><span class="nav-icon">▤</span>Payments &amp; Invoices</a>
-  <a href="#profile"><span class="nav-icon">♙</span>My Profile</a>
-  <a href="#support"><span class="nav-icon">ⓘ</span>Help &amp; Support</a>
- </nav>
-
- <div class="help-card" id="support">
-  <div class="help-icon">♧</div>
-  <h3>Need Help?</h3>
-  <p>Our baby-care team<br>is always here for you.</p>
-  <a href="mailto:support@kidscompany.co.in">Contact Support →</a>
- </div>
- <div class="sidebar-tag">Happy Baby<br>Happy You ♡</div>
-</aside>
-
-<main class="main" id="home">
- <header class="topbar">
-  <div class="breadcrumb">⌂ &nbsp; Customer Portal &nbsp;/&nbsp; <b>Dashboard</b></div>
-  <button class="mobile-menu" onclick="toggleMenu()">☰</button>
-  <div class="top-profile">
-   <img id="profileAvatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Customer profile">
-   <div><strong id="topCustomerName">Customer</strong><small id="topCustomerType">Stroller Spa Customer</small></div>
-   <button class="logout-btn" onclick="logoutCustomer()">Logout</button>
-  </div>
- </header>
-
- <div id="dataMessage" class="data-message"></div>
-
- <section class="hero">
-  <div class="hero-photo"></div>
-  <div class="hero-shade"></div>
-  <div class="hero-content">
-   <div class="hero-brand">STROLLER SPA</div>
-   <h1 id="welcomeHeading">Welcome back! 👋</h1>
-   <p>Let's keep your little one's gear fresh, safe and happy.</p>
-   <div class="hero-actions">
-    <a class="btn btn-gold" href="#bookings">View Bookings →</a>
-    <a class="btn btn-outline" href="#gear">My Baby Gear</a>
-   </div>
-  </div>
-  <div class="hero-caption">Premium Care<br>for Your Little One ♡</div>
- </section>
-
- <section class="stats">
-  <div class="stat">
-   <div class="stat-icon">♧</div>
-   <div><div class="stat-label">MY BABY GEAR</div><div class="stat-value" id="gearCount">00</div><div class="stat-note">Registered</div></div>
-  </div>
-  <div class="stat">
-   <div class="stat-icon">▣</div>
-   <div><div class="stat-label">MY BOOKINGS</div><div class="stat-value" id="bookingCount">00</div><div class="stat-note">Active</div></div>
-  </div>
-  <div class="stat">
-   <div class="stat-icon">♛</div>
-   <div><div class="stat-label">MEMBERSHIP</div><div class="stat-value" id="membershipStat" style="font-size:21px">—</div><div class="stat-note" id="membershipNote">Membership status</div></div>
-  </div>
-  <div class="stat">
-   <div class="stat-icon">✓</div>
-   <div><div class="stat-label">COMPLETED SERVICES</div><div class="stat-value" id="completedCount">00</div><div class="stat-note">All Time</div></div>
-  </div>
- </section>
-
- <section class="feature-grid">
-  <div class="panel service-panel anchor" id="tracking">
-   <div class="panel-heading">
-    <h2><span class="gold-icon">✣</span>Track Your Active Service</h2>
-    <a href="#bookings">View Details →</a>
-   </div>
-   <div id="trackingContent" class="empty-note">Your active service tracking will appear here when you have a booking.</div>
-  </div>
-
-  <section class="membership-card anchor" id="membership">
-   <div class="member-head"><span>♛ &nbsp; My Membership</span><span>Details</span></div>
-   <div id="membershipContent">
-    <div class="member-title">No Active Membership</div>
-    <div class="member-id">Your membership details will appear here.</div>
-    <div class="member-remaining">Explore our membership plans with our team.</div>
-   </div>
-  </section>
- </section>
-
- <section class="lower-grid">
-  <div class="panel anchor" id="bookings">
-   <div class="panel-heading"><h2>▣ &nbsp;My Bookings</h2></div>
-   <div class="table-scroll" id="bookingTable">
-    <div class="empty-note">Your bookings will appear here.</div>
-   </div>
-  </div>
-
-  <div class="panel anchor" id="gear">
-   <div class="panel-heading">
-    <h2>♧ &nbsp;My Baby Gear</h2>
-    <div class="gear-heading-actions">
-     <button class="add-gear-btn" type="button" onclick="openGearForm()">+ Add Gear</button>
+    <div id="loginPanel">
+      <h2>Welcome Back</h2>
+      <p>Sign in to access your personal Stroller Spa dashboard.</p>
+      <form id="loginForm">
+        <div class="field">
+          <label>Mobile Number</label>
+          <input id="loginPhone" type="tel" autocomplete="tel" placeholder="Enter registered mobile number" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+        </div>
+        <div class="login-error" id="loginError"></div>
+        <button class="primary-btn" type="submit">Sign In to My Account</button>
+      </form>
+      <button class="text-btn" id="showActivation">Have an activation code? Activate account</button>
+      <div class="login-note">Your activation code is provided by the Stroller Spa team. It is valid for 24 hours.</div>
     </div>
-   </div>
 
-   <div class="gear-form" id="gearForm">
-    <h3>Register Your Baby Gear</h3>
-    <form id="newGearForm">
-     <div class="gear-form-grid">
-      <div class="gear-field">
-       <label for="gearType">Product Category *</label>
-       <select id="gearType" required>
-        <option value="">Select Category</option>
-        <option>Baby Stroller</option>
-        <option>Baby Car Seat</option>
-        <option>Baby Cot</option>
-        <option>High Chair</option>
-        <option>Baby Carrier</option>
-        <option>Other Baby Gear</option>
-       </select>
-      </div>
-      <div class="gear-field">
-       <label for="gearBrand">Brand *</label>
-       <input id="gearBrand" type="text" placeholder="e.g. Chicco" required>
-      </div>
-      <div class="gear-field">
-       <label for="gearModel">Model Name *</label>
-       <input id="gearModel" type="text" placeholder="Enter model name" required>
-      </div>
-      <div class="gear-field">
-       <label for="gearDate">Purchase Date</label>
-       <input id="gearDate" type="date">
-      </div>
-      <div class="gear-field" style="grid-column:1/-1">
-       <label for="gearImage">Product Image URL (Optional)</label>
-       <input id="gearImage" type="url" placeholder="Paste product image URL">
-      </div>
-     </div>
-     <div class="gear-form-actions">
-      <button class="gear-save" id="saveGearButton" type="submit">Save Baby Gear</button>
-      <button class="gear-cancel" type="button" onclick="closeGearForm()">Cancel</button>
-     </div>
-    </form>
-   </div>
-
-   <div class="gear-grid" id="gearGrid">
-    <div class="gear-empty" id="gearEmpty">No baby gear registered yet. Click + Add Gear to register your first item.</div>
-   </div>
-  </div>
-
-  <div class="panel anchor" id="payments">
-   <div class="panel-heading"><h2>▤ &nbsp;Payments &amp; Invoices</h2></div>
-   <div id="paymentContent" class="payment-note">
-    Payment history is not connected yet. Your booking and membership information is available in the dashboard.
-   </div>
-   <div style="margin-top:14px">
-    <div class="panel-heading"><h2>⚡ &nbsp;Quick Actions</h2></div>
-    <div class="quick-grid">
-     <a class="quick-card" href="#bookings"><div class="quick-icon">▣</div><strong>My Bookings</strong><small>View services</small></a>
-     <a class="quick-card" href="#gear" onclick="setTimeout(openGearForm,300)"><div class="quick-icon">♧</div><strong>Add Baby Gear</strong><small>Register item</small></a>
-     <a class="quick-card" href="#membership"><div class="quick-icon">♛</div><strong>Membership</strong><small>View plan</small></a>
-     <a class="quick-card" href="#support"><div class="quick-icon">♡</div><strong>Get Support</strong><small>We are here</small></a>
+    <div id="activationPanel" hidden>
+      <h2>Activate Your Account</h2>
+      <p>Enter the mobile number and one-time activation code shared by our team. Create your password to get started.</p>
+      <form id="activationForm">
+        <div class="field">
+          <label>Registered Mobile Number</label>
+          <input id="activationPhone" type="tel" autocomplete="tel" placeholder="Enter mobile number" required>
+        </div>
+        <div class="field">
+          <label>One-Time Activation Code</label>
+          <input id="activationCode" type="text" maxlength="8" placeholder="8-character code" required>
+        </div>
+        <div class="field">
+          <label>Create Password</label>
+          <input id="activationPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" required>
+        </div>
+        <div class="login-error" id="activationError"></div>
+        <button class="primary-btn" type="submit">Activate My Account</button>
+      </form>
+      <button class="text-btn" id="showLogin">← Back to Login</button>
     </div>
-   </div>
   </div>
- </section>
-
- <section class="panel anchor" id="profile">
-  <div class="panel-heading"><h2>My Profile</h2></div>
-  <div class="profile-box">
-   <strong id="profileNameHeading">Customer Profile</strong>
-   <div class="profile-form">
-    <label for="profileName">Full Name</label>
-    <input id="profileName" type="text" autocomplete="name">
-    <label for="profileEmail">Email Address</label>
-    <input id="profileEmail" type="email" autocomplete="email">
-    <label for="profilePhone">Registered Mobile Number</label>
-    <input id="profilePhone" type="tel" disabled>
-    <button id="saveProfileButton" type="button" onclick="saveProfile()">Save Profile</button>
-   </div>
-  </div>
- </section>
-
- <footer class="footer">
-  <b>STROLLER SPA</b><br>
-  Premium Baby Gear Care · Happy Baby, Happy You ♡<br>
-  © 2026 Stroller Spa · Made with care for little ones
- </footer>
-</main>
 </div>
 
+<!-- CUSTOMER APP -->
+<div id="appShell" hidden>
+  <aside class="sidebar">
+    <div class="brand">STROLLER SPA</div>
+    <div class="brand-sub">PREMIUM BABY GEAR CARE</div>
+    <div class="nav-label">CUSTOMER MENU</div>
+    <div class="nav-list">
+      <button class="nav-btn active" data-section="home"><span class="nav-icon">⌂</span>Home</button>
+      <button class="nav-btn" data-section="gear"><span class="nav-icon">♧</span>My Baby Gear</button>
+      <button class="nav-btn" data-section="bookings"><span class="nav-icon">▤</span>My Bookings</button>
+      <button class="nav-btn" data-section="tracking"><span class="nav-icon">◷</span>Track Service</button>
+      <button class="nav-btn" data-section="membership"><span class="nav-icon">✧</span>My Membership</button>
+      <button class="nav-btn" data-section="payments"><span class="nav-icon">₹</span>Payments & Invoices</button>
+      <button class="nav-btn" data-section="profile"><span class="nav-icon">◎</span>My Profile</button>
+      <button class="nav-btn" data-section="support"><span class="nav-icon">♡</span>Help & Support</button>
+    </div>
+    <div class="sidebar-bottom">
+      <button id="logoutBtn">↪ &nbsp; Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">YOUR PERSONAL CARE SPACE</div>
+        <h1 class="page-title" id="pageTitle">Home</h1>
+      </div>
+      <div class="user-chip">
+        <div class="avatar" id="userInitial">C</div>
+        <span id="topUserName">Customer</span>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <section class="section active" id="section-home">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">WELCOME TO STROLLER SPA</div>
+          <h2>Hello, <span id="welcomeName">there</span>!</h2>
+          <p>Your baby's comfort and safety matter to us. Keep track of your baby gear, service bookings and memberships in one place.</p>
+          <button class="hero-btn" data-go="bookings">VIEW MY BOOKINGS</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-label">MY BABY GEAR</div><div class="stat-number" id="statGear">0</div><div class="stat-foot">Registered items</div></div>
+        <div class="stat"><div class="stat-label">ACTIVE BOOKINGS</div><div class="stat-number" id="statBookings">0</div><div class="stat-foot">Services in progress</div></div>
+        <div class="stat"><div class="stat-label">ACTIVE MEMBERSHIPS</div><div class="stat-number" id="statMemberships">0</div><div class="stat-foot">Current plans</div></div>
+        <div class="stat"><div class="stat-label">COMPLETED SERVICES</div><div class="stat-number" id="statCompleted">0</div><div class="stat-foot">Care services completed</div></div>
+      </div>
+
+      <div class="grid-two">
+        <div class="panel">
+          <div class="panel-head"><h3>Latest Service Tracking</h3><button class="small-link" data-go="tracking">View details →</button></div>
+          <div id="homeTracking" class="empty">Loading your service information...</div>
+        </div>
+        <div class="panel">
+          <h3>My Membership</h3>
+          <div id="homeMembership" class="empty">Loading membership information...</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Recent Bookings</h3><button class="small-link" data-go="bookings">View all →</button></div>
+        <div id="homeBookings" class="empty">Loading your bookings...</div>
+      </div>
+    </section>
+
+    <!-- GEAR -->
+    <section class="section" id="section-gear">
+      <div class="content-card">
+        <h3>My Baby Gear</h3>
+        <p class="section-intro">View and manage the baby gear registered to your account.</p>
+        <div id="gearList"><div class="empty">Loading your baby gear...</div></div>
+      </div>
+      <div class="content-card">
+        <h3>Register New Baby Gear</h3>
+        <p class="section-intro">Add a stroller, car seat or other baby gear to your profile.</p>
+        <form id="gearForm">
+          <div class="form-grid">
+            <div class="field"><label>Gear Category</label><select id="gearCategory" required><option value="">Select category</option><option>Baby Stroller</option><option>Baby Car Seat</option><option>Baby Carrier</option><option>High Chair</option><option>Other Baby Gear</option></select></div>
+            <div class="field"><label>Brand</label><input id="gearBrand" placeholder="e.g. Bugaboo"></div>
+            <div class="field"><label>Model</label><input id="gearModel" placeholder="Enter model"></div>
+            <div class="field"><label>Purchase Date</label><input id="gearPurchaseDate" type="date"></div>
+            <div class="field"><label>Image URL (Optional)</label><input id="gearImage" type="url" placeholder="https://..."></div>
+          </div>
+          <button class="primary-btn" style="max-width:220px" type="submit">+ Add Baby Gear</button>
+          <div class="login-error" id="gearError"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- BOOKINGS -->
+    <section class="section" id="section-bookings">
+      <div class="content-card">
+        <h3>My Bookings</h3>
+        <p class="section-intro">All your Stroller Spa service bookings in one place.</p>
+        <div id="bookingList"><div class="empty">Loading bookings...</div></div>
+      </div>
+    </section>
+
+    <!-- TRACKING -->
+    <section class="section" id="section-tracking">
+      <div class="content-card">
+        <h3>Track My Service</h3>
+        <p class="section-intro">Follow the progress of your baby gear service.</p>
+        <div id="trackingList"><div class="empty">Loading service tracking...</div></div>
+      </div>
+    </section>
+
+    <!-- MEMBERSHIP -->
+    <section class="section" id="section-membership">
+      <div class="content-card">
+        <h3>My Membership</h3>
+        <p class="section-intro">Your membership plans, service credits and validity.</p>
+        <div id="membershipList"><div class="empty">Loading memberships...</div></div>
+      </div>
+    </section>
+
+    <!-- PAYMENTS -->
+    <section class="section" id="section-payments">
+      <div class="content-card">
+        <h3>Payments & Invoices</h3>
+        <p class="section-intro">Your payment and invoice information.</p>
+        <div class="notice">Payment history and downloadable invoices are not connected to this customer portal yet. Please contact our support team for payment confirmation, receipts or invoice copies. No payment records are displayed here until the payment integration is enabled.</div>
+        <div id="paymentMessage" class="muted" style="margin-top:15px"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="section" id="section-profile">
+      <div class="content-card">
+        <h3>My Profile</h3>
+        <p class="section-intro">Update your account details.</p>
+        <form id="profileForm">
+          <div class="form-grid">
+            <div class="field"><label>Full Name</label><input id="profileName" required></div>
+            <div class="field"><label>Registered Mobile Number</label><input id="profilePhone" disabled></div>
+            <div class="field"><label>Email Address</label><input id="profileEmail" type="email"></div>
+          </div>
+          <button class="primary-btn" style="max-width:220px" type="submit">Save Profile</button>
+          <div class="login-error" id="profileError"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- SUPPORT -->
+    <section class="section" id="section-support">
+      <div class="content-card">
+        <h3>Help & Support</h3>
+        <p class="section-intro">We're here to help you with your baby's gear care.</p>
+        <div class="data-grid">
+          <div class="data-item"><label>SUPPORT EMAIL</label><strong>info@kidscompany.co.in</strong></div>
+          <div class="data-item"><label>WEBSITE</label><strong>kidscompany.co.in</strong></div>
+        </div>
+        <p class="muted" style="margin-top:18px">For booking updates, membership questions, service concerns or invoice requests, please contact the Kids Company support team.</p>
+        <a class="action-btn" href="mailto:info@kidscompany.co.in" style="display:inline-block;text-decoration:none;margin-top:8px">Email Support</a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
 <script>
-'use strict';
-
-/* BACKEND CONNECTION */
 const API_BASE = 'https://spaadmin.kidscompany.co.in';
+const $ = id => document.getElementById(id);
 
-const $ = selector => document.querySelector(selector);
-const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
- '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-}[char]));
-
-let currentCustomer = null;
-let babyGear = [];
+let customer = null;
+let gearItems = [];
 let bookings = [];
 let memberships = [];
-let paymentData = null;
+let payments = [];
 
-function showAuthMessage(text,type='error'){
- const el = $('#authMessage');
- el.textContent = text;
- el.className = 'auth-message show ' + type;
-}
-function clearAuthMessage(){
- const el = $('#authMessage');
- el.textContent = '';
- el.className = 'auth-message';
-}
-function showDataMessage(text,isError=false){
- const el = $('#dataMessage');
- el.textContent = text;
- el.className = 'data-message' + (isError?' error':'');
- el.style.display = 'block';
-}
-function clearDataMessage(){
- const el = $('#dataMessage');
- el.style.display = 'none';
- el.textContent = '';
-}
-
-function showAuthMode(mode){
- clearAuthMessage();
- $('#loginForm').hidden = mode !== 'login';
- $('#activateForm').hidden = mode !== 'activate';
-}
-
-async function api(path,options={}){
- const response = await fetch(API_BASE + path,{
-  ...options,
-  credentials:'include',
-  headers:{
-   ...(options.body ? {'Content-Type':'application/json'} : {}),
-   ...(options.headers || {})
-  }
- });
-
- let result = {};
- try { result = await response.json(); } catch(error) {}
-
- if(!response.ok){
-  if(response.status===401 && path!=='/api/customer/login' && path!=='/api/customer/activate'){
-   throw new Error('Your session has expired. Please sign in again.');
-  }
-  throw new Error(result.error || result.message || `Request failed (${response.status})`);
- }
- return result;
-}
-
-function getList(response,key){
- if(Array.isArray(response)) return response;
- if(Array.isArray(response?.[key])) return response[key];
- if(Array.isArray(response?.items)) return response.items;
- if(Array.isArray(response?.data)) return response.data;
- return [];
-}
-
-function getCustomer(response){
- return response?.customer || response?.data?.customer || response?.data || response;
-}
-
-function normalizeStatus(status){
- return String(status||'requested').toLowerCase().replaceAll(' ','_').replaceAll('-','_');
-}
-
-function statusLabel(status){
- return String(status||'Requested').replaceAll('_',' ').replaceAll('-',' ')
-  .replace(/\b\w/g,char=>char.toUpperCase());
-}
-
-function isCompleted(booking){
- const status = normalizeStatus(booking.job_status || booking.status);
- return status==='completed';
-}
-
-function activeBookings(){
- return bookings.filter(booking=>{
-  const status = normalizeStatus(booking.job_status || booking.status);
-  return !['completed','cancelled'].includes(status);
- });
-}
-
-/* LOGIN */
-$('#loginForm').addEventListener('submit',async event=>{
- event.preventDefault();
- clearAuthMessage();
-
- const phone = $('#loginPhone').value.trim();
- const password = $('#loginPassword').value;
- const button = $('#loginButton');
-
- if(!phone || !password){
-  showAuthMessage('Please enter your mobile number and password.');
-  return;
- }
-
- button.disabled = true;
- button.textContent = 'Signing in...';
-
- try{
-  await api('/api/customer/login',{
-   method:'POST',
-   body:JSON.stringify({phone,password})
-  });
-  await loadCustomerPortal();
- }catch(error){
-  showAuthMessage(error.message || 'Unable to sign in.');
- }finally{
-  button.disabled = false;
-  button.textContent = 'Sign In to My Account';
- }
-});
-
-/* FIRST-TIME ACCOUNT ACTIVATION */
-$('#activateForm').addEventListener('submit',async event=>{
- event.preventDefault();
- clearAuthMessage();
-
- const phone = $('#activatePhone').value.trim();
- const activation_code = $('#activationCodeInput').value.trim().toUpperCase();
- const password = $('#newPassword').value;
- const confirmPassword = $('#confirmPassword').value;
- const button = $('#activateButton');
-
- if(password.length<8){
-  showAuthMessage('Please create a password with at least 8 characters.');
-  return;
- }
- if(password!==confirmPassword){
-  showAuthMessage('The passwords do not match.');
-  return;
- }
-
- button.disabled = true;
- button.textContent = 'Activating...';
-
- try{
-  await api('/api/customer/activate',{
-   method:'POST',
-   body:JSON.stringify({phone,activation_code,password})
-  });
-  showAuthMessage('Account activated successfully. Signing you in...','success');
-  await loadCustomerPortal();
- }catch(error){
-  showAuthMessage(error.message || 'Unable to activate your account.');
- }finally{
-  button.disabled = false;
-  button.textContent = 'Activate My Account';
- }
-});
-
-/* CHECK EXISTING CUSTOMER SESSION */
-async function initializePortal(){
- try{
-  await api('/api/customer/me');
-  await loadCustomerPortal();
- }catch(error){
-  $('#authScreen').hidden = false;
-  $('#appShell').hidden = true;
-  showAuthMode('login');
- }
-}
-
-/* LOAD AUTHENTICATED CUSTOMER DATA */
-async function loadCustomerPortal(){
- clearAuthMessage();
- try{
-  const meResponse = await api('/api/customer/me');
-  currentCustomer = getCustomer(meResponse);
-
-  if(!currentCustomer || !currentCustomer.id){
-   throw new Error('Customer account details could not be loaded. Please sign in again.');
-  }
-
-  $('#authScreen').hidden = true;
-  $('#appShell').hidden = false;
-
-  renderCustomerProfile();
-
-  const results = await Promise.allSettled([
-   api('/api/customer/dashboard'),
-   api('/api/customer/gear'),
-   api('/api/customer/bookings'),
-   api('/api/customer/memberships'),
-   api('/api/customer/payments')
-  ]);
-
-  const dashboardResult = results[0];
-  const gearResult = results[1];
-  const bookingsResult = results[2];
-  const membershipsResult = results[3];
-  const paymentsResult = results[4];
-
-  if(gearResult.status==='fulfilled'){
-   babyGear = getList(gearResult.value,'gear');
-  }else{
-   babyGear = [];
-  }
-
-  if(bookingsResult.status==='fulfilled'){
-   bookings = getList(bookingsResult.value,'bookings');
-  }else{
-   bookings = [];
-  }
-
-  if(membershipsResult.status==='fulfilled'){
-   memberships = getList(membershipsResult.value,'memberships');
-  }else{
-   memberships = [];
-  }
-
-  if(paymentsResult.status==='fulfilled'){
-   paymentData = paymentsResult.value;
-  }else{
-   paymentData = null;
-  }
-
-  renderAll();
-
-  const failed = results.filter(result=>result.status==='rejected');
-  if(failed.length){
-   showDataMessage('Some dashboard information could not be loaded. Please refresh the page or contact support.',true);
-  }else{
-   clearDataMessage();
-  }
-
-  if(dashboardResult.status==='rejected'){
-   console.warn('Dashboard summary endpoint:',dashboardResult.reason);
-  }
-
- }catch(error){
-  $('#appShell').hidden = true;
-  $('#authScreen').hidden = false;
-  showAuthMode('login');
-  showAuthMessage(error.message || 'Unable to load your account. Please sign in again.');
- }
-}
-
-/* CUSTOMER PROFILE */
-function renderCustomerProfile(){
- const name = currentCustomer?.name || 'Customer';
- const email = currentCustomer?.email || '';
- const phone = currentCustomer?.phone || '';
-
- $('#topCustomerName').textContent = name;
- $('#welcomeHeading').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 👋';
- $('#profileNameHeading').textContent = name;
- $('#profileName').value = name;
- $('#profileEmail').value = email;
- $('#profilePhone').value = phone;
-
- const activeMembership = memberships.find(m=>isMembershipActive(m));
- $('#topCustomerType').textContent = activeMembership
-  ? (activeMembership.plan || 'Membership Member')
-  : 'Stroller Spa Customer';
-}
-
-async function saveProfile(){
- const name = $('#profileName').value.trim();
- const email = $('#profileEmail').value.trim();
- const button = $('#saveProfileButton');
-
- if(!name){
-  showDataMessage('Please enter your name.',true);
-  return;
- }
-
- button.disabled = true;
- button.textContent = 'Saving...';
-
- try{
-  const response = await api('/api/customer/profile',{
-   method:'PATCH',
-   body:JSON.stringify({name,email})
-  });
-  currentCustomer = getCustomer(response);
-  if(!currentCustomer || !currentCustomer.id){
-   currentCustomer = {...currentCustomer,name,email};
-  }
-  renderCustomerProfile();
-  showDataMessage('Your profile has been updated successfully.');
- }catch(error){
-  showDataMessage(error.message || 'Unable to update your profile.',true);
- }finally{
-  button.disabled = false;
-  button.textContent = 'Save Profile';
- }
-}
-
-/* DASHBOARD RENDER */
-function renderAll(){
- renderCustomerProfile();
- renderBabyGear();
- renderBookings();
- renderTracking();
- renderMembership();
- renderStats();
- renderPayments();
-}
-
-function renderStats(){
- const active = activeBookings();
- const completed = bookings.filter(isCompleted).length;
- const activeMembership = memberships.find(isMembershipActive);
-
- $('#gearCount').textContent = String(babyGear.length).padStart(2,'0');
- $('#bookingCount').textContent = String(active.length).padStart(2,'0');
- $('#completedCount').textContent = String(completed).padStart(2,'0');
- $('#membershipStat').textContent = activeMembership ? 'Active' : '—';
- $('#membershipNote').textContent = activeMembership ? 'Member' : 'No active plan';
-}
-
-/* BABY GEAR FROM DATABASE */
-function renderBabyGear(){
- const grid = $('#gearGrid');
- grid.querySelectorAll('.gear-card').forEach(card=>card.remove());
-
- $('#gearEmpty').style.display = babyGear.length ? 'none' : 'block';
-
- babyGear.forEach(item=>{
-  const card = document.createElement('div');
-  card.className = 'gear-card';
-
-  const img = document.createElement('img');
-  img.src = item.image_url || 'https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90';
-  img.alt = item.category || 'Baby gear';
-  img.onerror = function(){
-   this.onerror = null;
-   this.src = 'https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90';
+async function api(path, options = {}) {
+  const config = {
+    method: options.method || 'GET',
+    credentials: 'include',
+    headers: {...(options.body ? {'Content-Type':'application/json'} : {}), ...(options.headers || {})}
   };
+  if (options.body) config.body = JSON.stringify(options.body);
 
-  const info = document.createElement('div');
-  info.className = 'gear-info';
+  let response;
+  try {
+    response = await fetch(API_BASE + path, config);
+  } catch (error) {
+    throw new Error('Unable to connect to Stroller Spa server. Please check your internet connection and try again.');
+  }
 
-  const tag = document.createElement('span');
-  tag.className = 'active-tag';
-  tag.textContent = '● Registered';
+  let data = {};
+  try { data = await response.json(); } catch (_) {}
 
-  const title = document.createElement('strong');
-  title.textContent = item.category || 'Baby Gear';
-
-  const detail = document.createElement('small');
-  detail.textContent = [item.brand,item.model].filter(Boolean).join(' · ') || 'Model details not added';
-
-  const purchaseDate = document.createElement('small');
-  purchaseDate.textContent = item.purchase_date
-   ? 'Purchased: ' + String(item.purchase_date).slice(0,10)
-   : 'Purchase date not added';
-
-  info.append(tag,title,detail,purchaseDate);
-  card.append(img,info);
-  grid.appendChild(card);
- });
-
- $('#gearCount').textContent = String(babyGear.length).padStart(2,'0');
+  if (!response.ok) {
+    if (response.status === 401) throw new Error(data.message || data.error || 'Your session has expired. Please sign in again.');
+    throw new Error(data.message || data.error || 'Something went wrong. Please try again.');
+  }
+  return data;
 }
 
-function openGearForm(){
- const form = $('#gearForm');
- form.classList.add('open');
- form.scrollIntoView({behavior:'smooth',block:'center'});
+function itemsFrom(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.bookings)) return data.bookings;
+  if (Array.isArray(data.gear)) return data.gear;
+  if (Array.isArray(data.memberships)) return data.memberships;
+  return [];
 }
 
-function closeGearForm(){
- $('#gearForm').classList.remove('open');
- $('#newGearForm').reset();
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
 }
 
-$('#newGearForm').addEventListener('submit',async event=>{
- event.preventDefault();
+function showToast(message) {
+  $('toast').textContent = message;
+  $('toast').hidden = false;
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => $('toast').hidden = true, 3500);
+}
 
- const newItem = {
-  category:$('#gearType').value,
-  brand:$('#gearBrand').value.trim(),
-  model:$('#gearModel').value.trim(),
-  purchase_date:$('#gearDate').value || null,
-  image_url:$('#gearImage').value.trim() || null
- };
+function showLogin(message = '') {
+  $('appShell').hidden = true;
+  $('loginScreen').hidden = false;
+  $('loginError').textContent = message;
+  $('loginPanel').hidden = false;
+  $('activationPanel').hidden = true;
+  customer = null;
+}
 
- if(!newItem.category || !newItem.brand || !newItem.model){
-  showDataMessage('Please complete all required baby gear fields.',true);
-  return;
- }
+function showActivation() {
+  $('loginPanel').hidden = true;
+  $('activationPanel').hidden = false;
+  $('activationError').textContent = '';
+}
 
- const button = $('#saveGearButton');
- button.disabled = true;
- button.textContent = 'Saving...';
+function showLoginPanel() {
+  $('loginPanel').hidden = false;
+  $('activationPanel').hidden = true;
+  $('loginError').textContent = '';
+}
 
- try{
-  await api('/api/customer/gear',{
-   method:'POST',
-   body:JSON.stringify(newItem)
+function customerName() {
+  return customer?.name || customer?.full_name || 'Customer';
+}
+
+function statusText(value) {
+  return String(value || 'requested').replaceAll('_',' ');
+}
+
+function statusClass(value) {
+  const s = String(value || '').toLowerCase();
+  if (s === 'completed' || s === 'ready') return 'completed';
+  if (s === 'cancelled') return 'cancelled';
+  return '';
+}
+
+function dateText(value) {
+  if (!value) return 'Not available';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return escapeHTML(value);
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function activeBookings() {
+  return bookings.filter(b => !['completed','cancelled'].includes(String(b.job_status || b.status || '').toLowerCase()));
+}
+
+function activeMemberships() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return memberships.filter(m => {
+    if (!m.expires_at) return true;
+    const expiry = new Date(m.expires_at);
+    return !Number.isNaN(expiry.getTime()) && expiry >= today;
   });
-
-  const response = await api('/api/customer/gear');
-  babyGear = getList(response,'gear');
-
-  renderBabyGear();
-  renderStats();
-  closeGearForm();
-  showDataMessage('Your baby gear has been registered successfully.');
- }catch(error){
-  showDataMessage(error.message || 'Unable to save baby gear.',true);
- }finally{
-  button.disabled = false;
-  button.textContent = 'Save Baby Gear';
- }
-});
-
-/* BOOKINGS */
-function renderBookings(){
- const container = $('#bookingTable');
-
- if(!bookings.length){
-  container.innerHTML = '<div class="empty-note">You do not have any bookings yet. Your future service requests will appear here.</div>';
-  return;
- }
-
- const sorted = [...bookings].sort((a,b)=>
-  new Date(b.created_at || b.preferred_date || 0)-new Date(a.created_at || a.preferred_date || 0)
- );
-
- container.innerHTML = `
-  <table>
-   <thead><tr><th>BOOKING ID</th><th>SERVICE</th><th>DATE</th><th>STATUS</th></tr></thead>
-   <tbody>
-    ${sorted.map(booking=>{
-     const status = booking.job_status || booking.status || 'requested';
-     const completed = normalizeStatus(status)==='completed';
-     return `<tr>
-      <td><strong>#${esc(booking.reference || booking.id)}</strong></td>
-      <td>${esc(booking.service || 'Service')}</td>
-      <td>${esc(formatDate(booking.preferred_date))}</td>
-      <td><span class="pill ${completed?'completed':''}">${esc(statusLabel(status))}</span></td>
-     </tr>`;
-    }).join('')}
-   </tbody>
-  </table>`;
 }
 
-/* SERVICE TRACKING */
-const trackingSteps = [
- {key:'requested',label:'Booked'},
- {key:'confirmed',label:'Confirmed'},
- {key:'pickup_scheduled',label:'Pickup'},
- {key:'received',label:'Received'},
- {key:'inspection',label:'Inspection'},
- {key:'cleaning',label:'Cleaning'},
- {key:'drying',label:'Drying'},
- {key:'quality_check',label:'Quality Check'},
- {key:'ready',label:'Ready'},
- {key:'completed',label:'Completed'}
-];
+function serviceStatus(b) {
+  return b.job_status || b.status || 'requested';
+}
 
-function renderTracking(){
- const container = $('#trackingContent');
- const active = activeBookings().sort((a,b)=>
-  new Date(b.created_at || b.preferred_date || 0)-new Date(a.created_at || a.preferred_date || 0)
- );
- const booking = active[0];
+function bookingReference(b) {
+  return b.reference || b.booking_reference || (b.id ? 'Booking #' + b.id : 'Booking');
+}
 
- if(!booking){
-  container.innerHTML = '<div class="empty-note">You currently have no active service. When a booking is confirmed, its live progress will appear here.</div>';
-  return;
- }
-
- const status = normalizeStatus(booking.job_status || booking.status);
- let currentIndex = trackingSteps.findIndex(step=>step.key===status);
- if(currentIndex<0) currentIndex = 0;
-
- const steps = trackingSteps.map((step,index)=>{
-  const state = index<currentIndex ? 'done' : index===currentIndex ? 'current' : '';
-  return `<div class="step ${state}"><div class="step-dot"></div>${esc(step.label)}</div>`;
- }).join('');
-
- container.innerHTML = `
-  <div class="service-layout">
-   <div class="service-image-box">
-    <img class="service-image" src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=90" alt="Professional cleaning service">
-   </div>
-   <div class="service-info">
-    <span class="status"><span class="status-dot"></span>${esc(statusLabel(status))}</span>
-    <h3>${esc(booking.service || 'Stroller Spa Service')}</h3>
-    <div class="service-meta">Booking ID: ${esc(booking.reference || booking.id)} · ${esc(formatDate(booking.preferred_date))}</div>
-    <div class="progress">${steps}</div>
-    <div class="service-note">♥ &nbsp;Your service progress is updated by our Stroller Spa care team. Please check here for the latest status.</div>
-   </div>
+function renderBooking(b) {
+  const status = serviceStatus(b);
+  return `<div class="booking-row">
+    <div><div class="row-title">${escapeHTML(bookingReference(b))}</div>
+    <div class="row-sub">${escapeHTML(b.service || 'Service')} · ${dateText(b.preferred_date)}</div></div>
+    <span class="status ${statusClass(status)}">${escapeHTML(statusText(status))}</span>
   </div>`;
 }
 
-/* MEMBERSHIPS */
-function isMembershipActive(membership){
- const today = new Date().toISOString().slice(0,10);
- const start = membership.starts_at ? String(membership.starts_at).slice(0,10) : '';
- const expiry = membership.expires_at ? String(membership.expires_at).slice(0,10) : '';
- return (!start || start<=today) && (!expiry || expiry>=today);
+function renderGear(g) {
+  return `<div class="gear-row">
+    <div><div class="row-title">${escapeHTML(g.brand || '')} ${escapeHTML(g.model || g.category || 'Baby Gear')}</div>
+    <div class="row-sub">${escapeHTML(g.category || 'Baby Gear')} · Added ${dateText(g.created_at)}</div></div>
+    <span class="status">Registered</span>
+  </div>`;
 }
 
-function renderMembership(){
- const container = $('#membershipContent');
- const active = memberships.filter(isMembershipActive);
- const membership = active[0];
-
- if(!membership){
-  container.innerHTML = `
-   <div class="member-title">No Active Membership</div>
-   <div class="member-id">No active membership is currently linked to your account.</div>
-   <div class="member-remaining">Contact our team to explore available plans.</div>`;
-  return;
- }
-
- const deepTotal = Number(membership.deep_total || 0);
- const essentialTotal = Number(membership.essential_total || 0);
- const deepUsed = Number(membership.deep_used || 0);
- const essentialUsed = Number(membership.essential_used || 0);
- const total = deepTotal + essentialTotal;
- const used = deepUsed + essentialUsed;
- const remaining = Math.max(0,total-used);
- const percent = total ? Math.min(100,(used/total)*100) : 0;
-
- container.innerHTML = `
-  <div class="member-title">${esc(membership.plan || 'Membership Plan')}</div>
-  <div class="member-id">Member ID: ${esc(membership.code || membership.id || '—')}</div>
-  <div class="member-progress-row"><span>Services used</span><b>${used} of ${total}</b></div>
-  <div class="member-progress"><span style="width:${percent}%"></span></div>
-  <div class="member-validity">Validity: ${esc(formatDate(membership.starts_at))} – ${esc(formatDate(membership.expires_at))}</div>
-  <div class="member-validity" style="margin-top:8px">Deep: ${Math.max(0,deepTotal-deepUsed)} remaining · Essential: ${Math.max(0,essentialTotal-essentialUsed)} remaining</div>
-  <div class="member-remaining">★ &nbsp;${remaining} services remaining in your plan</div>`;
+function renderMembership(m) {
+  const deepTotal = Number(m.deep_total || 0);
+  const essentialTotal = Number(m.essential_total || 0);
+  const deepUsed = Number(m.deep_used || 0);
+  const essentialUsed = Number(m.essential_used || 0);
+  return `<div class="membership-row">
+    <div><div class="row-title">${escapeHTML(m.plan || 'Membership')}</div>
+    <div class="row-sub">Code: ${escapeHTML(m.code || '—')} · Valid till ${dateText(m.expires_at)}</div>
+    <div class="row-sub">Deep Care: ${deepUsed}/${deepTotal} used · Essential Care: ${essentialUsed}/${essentialTotal} used</div></div>
+    <span class="status">Active</span>
+  </div>`;
 }
 
-/* PAYMENTS - HONEST EMPTY STATE UNTIL PAYMENT DATA IS CONNECTED */
-function renderPayments(){
- const container = $('#paymentContent');
-
- if(paymentData && paymentData.integrated && getList(paymentData,'items').length){
-  const items = getList(paymentData,'items');
-  container.innerHTML = `
-   <div class="table-scroll">
-    <table>
-     <thead><tr><th>REFERENCE</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
-     <tbody>${items.map(item=>`
-      <tr>
-       <td>${esc(item.reference || item.order_id || '—')}</td>
-       <td>${esc(formatDate(item.date || item.created_at))}</td>
-       <td>${esc(item.amount ?? '—')}</td>
-       <td>${esc(item.status || '—')}</td>
-      </tr>`).join('')}
-     </tbody>
-    </table>
-   </div>`;
-  return;
- }
-
- container.textContent = paymentData?.message ||
-  'Payment history and downloadable invoices are not connected yet. Your booking and membership information is available in the dashboard.';
+function trackingCard(b) {
+  const status = String(serviceStatus(b)).toLowerCase();
+  const stages = ['requested','confirmed','pickup_scheduled','received','inspection','cleaning','drying','quality_check','ready','completed'];
+  const index = stages.indexOf(status);
+  const progress = status === 'cancelled' ? 0 : Math.max(5, ((index < 0 ? 0 : index) + 1) / stages.length * 100);
+  return `<div style="padding:8px 0 15px">
+    <div class="panel-head"><div><div class="row-title">${escapeHTML(bookingReference(b))}</div><div class="row-sub">${escapeHTML(b.service || 'Service')} · ${dateText(b.preferred_date)}</div></div>
+    <span class="status ${statusClass(status)}">${escapeHTML(statusText(status))}</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
+    <div class="progress-labels"><span>Requested</span><span>Cleaning</span><span>Ready</span><span>Completed</span></div>
+    ${status === 'cancelled' ? '<p class="muted">This booking has been cancelled.</p>' : ''}
+  </div>`;
 }
 
-/* DATE DISPLAY */
-function formatDate(value){
- if(!value) return '—';
- const raw = String(value).slice(0,10);
- const parsed = new Date(raw+'T00:00:00');
- if(Number.isNaN(parsed.getTime())) return raw;
- return parsed.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+async function loadDashboard() {
+  const results = await Promise.allSettled([
+    api('/api/customer/gear'),
+    api('/api/customer/bookings'),
+    api('/api/customer/memberships'),
+    api('/api/customer/payments')
+  ]);
+
+  gearItems = results[0].status === 'fulfilled' ? itemsFrom(results[0].value) : [];
+  bookings = results[1].status === 'fulfilled' ? itemsFrom(results[1].value) : [];
+  memberships = results[2].status === 'fulfilled' ? itemsFrom(results[2].value) : [];
+  payments = results[3].status === 'fulfilled' ? itemsFrom(results[3].value) : [];
+
+  renderAll();
+
+  const failed = results.some(r => r.status === 'rejected');
+  if (failed) showToast('Some account information could not be loaded. Please refresh.');
 }
 
-/* LOGOUT */
-async function logoutCustomer(){
- if(!confirm('Are you sure you want to sign out?')) return;
+function renderAll() {
+  const name = customerName();
+  $('welcomeName').textContent = name.split(' ')[0];
+  $('topUserName').textContent = name;
+  $('userInitial').textContent = name.trim().charAt(0).toUpperCase() || 'C';
 
- try{
-  await api('/api/customer/logout',{method:'POST'});
- }catch(error){
-  console.warn('Logout request:',error.message);
- }
+  const active = activeBookings();
+  const completed = bookings.filter(b => String(serviceStatus(b)).toLowerCase() === 'completed');
+  const currentMemberships = activeMemberships();
 
- currentCustomer = null;
- babyGear = [];
- bookings = [];
- memberships = [];
- paymentData = null;
+  $('statGear').textContent = gearItems.length;
+  $('statBookings').textContent = active.length;
+  $('statMemberships').textContent = currentMemberships.length;
+  $('statCompleted').textContent = completed.length;
 
- $('#appShell').hidden = true;
- $('#authScreen').hidden = false;
- $('#loginForm').reset();
- $('#activateForm').reset();
- showAuthMode('login');
- showAuthMessage('You have been signed out successfully.','success');
+  $('homeBookings').innerHTML = bookings.length
+    ? bookings.slice(0,3).map(renderBooking).join('')
+    : '<div class="empty">You do not have any bookings yet.</div>';
+
+  $('bookingList').innerHTML = bookings.length
+    ? bookings.map(renderBooking).join('')
+    : '<div class="empty">No bookings found in your account yet.</div>';
+
+  $('gearList').innerHTML = gearItems.length
+    ? gearItems.map(renderGear).join('')
+    : '<div class="empty">No baby gear registered yet. Use the form below to add your first item.</div>';
+
+  $('membershipList').innerHTML = memberships.length
+    ? memberships.map(renderMembership).join('')
+    : '<div class="empty">No membership is currently linked to your account.</div>';
+
+  const latest = [...bookings].sort((a,b) => new Date(b.created_at || b.preferred_date || 0) - new Date(a.created_at || a.preferred_date || 0))[0];
+  $('homeTracking').innerHTML = latest
+    ? trackingCard(latest)
+    : '<div class="empty">You have no service currently being tracked.</div>';
+
+  $('trackingList').innerHTML = bookings.length
+    ? bookings.map(trackingCard).join('')
+    : '<div class="empty">Your service tracking will appear here when you have a booking.</div>';
+
+  const membership = currentMemberships[0];
+  $('homeMembership').innerHTML = membership
+    ? `<div class="row-title">${escapeHTML(membership.plan || 'Membership')}</div>
+       <div class="row-sub">Membership Code: ${escapeHTML(membership.code || '—')}</div>
+       <div class="row-sub">Valid till ${dateText(membership.expires_at)}</div>
+       <button class="small-link" data-go="membership" style="padding:12px 0">View membership →</button>`
+    : '<div class="empty">No active membership found.</div>';
+
+  $('profileName').value = customer?.name || customer?.full_name || '';
+  $('profilePhone').value = customer?.phone || '';
+  $('profileEmail').value = customer?.email || '';
+  $('paymentMessage').textContent = payments.length
+    ? 'Payment records were returned by the server, but invoice display is not enabled in this portal yet.'
+    : 'No payment history is available in the portal yet.';
 }
 
-/* MOBILE MENU */
-function toggleMenu(){
- $('#sidebar').classList.toggle('open');
+function navigate(section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === section));
+  const target = $('section-' + section);
+  if (target) target.classList.add('active');
+  const activeButton = document.querySelector('.nav-btn[data-section="' + section + '"]');
+  $('pageTitle').textContent = activeButton ? activeButton.textContent.trim() : 'Home';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* NAVIGATION */
-document.querySelectorAll('.nav a').forEach(link=>{
- link.addEventListener('click',function(){
-  document.querySelectorAll('.nav a').forEach(item=>item.classList.remove('active'));
-  this.classList.add('active');
-  if(window.innerWidth<=760){
-   $('#sidebar').classList.remove('open');
+async function enterApp() {
+  $('loginScreen').hidden = true;
+  $('appShell').hidden = false;
+  navigate('home');
+  await loadDashboard();
+}
+
+async function checkSession() {
+  try {
+    const data = await api('/api/customer/me');
+    customer = data.customer || data.user || data;
+    await enterApp();
+  } catch (_) {
+    showLogin();
   }
- });
+}
+
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('loginError').textContent = 'Signing in...';
+  try {
+    const data = await api('/api/customer/login', {
+      method:'POST',
+      body:{phone:$('loginPhone').value.trim(),password:$('loginPassword').value}
+    });
+    customer = data.customer || data.user || data;
+    await enterApp();
+  } catch (error) {
+    $('loginError').textContent = error.message;
+  }
 });
 
-/* INITIALIZE */
-initializePortal();
-</script>
+$('activationForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('activationError').textContent = 'Activating your account...';
+  try {
+    const data = await api('/api/customer/activate', {
+      method:'POST',
+      body:{
+        phone:$('activationPhone').value.trim(),
+        activation_code:$('activationCode').value.trim().toUpperCase(),
+        password:$('activationPassword').value
+      }
+    });
+    customer = data.customer || data.user || data;
+    await enterApp();
+  } catch (error) {
+    $('activationError').textContent = error.message;
+  }
+});
 
+$('showActivation').addEventListener('click',showActivation);
+$('showLogin').addEventListener('click',showLoginPanel);
+
+$('logoutBtn').addEventListener('click',async () => {
+  try { await api('/api/customer/logout',{method:'POST'}); } catch (_) {}
+  showLogin();
+  $('loginPassword').value = '';
+  $('activationPassword').value = '';
+});
+
+document.querySelectorAll('.nav-btn').forEach(button => {
+  button.addEventListener('click',() => navigate(button.dataset.section));
+});
+
+document.addEventListener('click',e => {
+  const target = e.target.closest('[data-go]');
+  if (target) navigate(target.dataset.go);
+});
+
+$('gearForm').addEventListener('submit',async e => {
+  e.preventDefault();
+  $('gearError').textContent = 'Saving baby gear...';
+  try {
+    await api('/api/customer/gear',{
+      method:'POST',
+      body:{
+        category:$('gearCategory').value,
+        brand:$('gearBrand').value.trim(),
+        model:$('gearModel').value.trim(),
+        purchase_date:$('gearPurchaseDate').value || null,
+        image_url:$('gearImage').value.trim() || null
+      }
+    });
+    $('gearForm').reset();
+    $('gearError').textContent = '';
+    await loadDashboard();
+    showToast('Baby gear added successfully.');
+  } catch(error) {
+    $('gearError').textContent = error.message;
+  }
+});
+
+$('profileForm').addEventListener('submit',async e => {
+  e.preventDefault();
+  $('profileError').textContent = 'Saving profile...';
+  try {
+    const data = await api('/api/customer/profile',{
+      method:'PATCH',
+      body:{
+        name:$('profileName').value.trim(),
+        email:$('profileEmail').value.trim()
+      }
+    });
+    customer = data.customer || data.user || {...customer,name:$('profileName').value.trim(),email:$('profileEmail').value.trim()};
+    $('profileError').textContent = '';
+    renderAll();
+    showToast('Profile updated successfully.');
+  } catch(error) {
+    $('profileError').textContent = error.message;
+  }
+});
+
+checkSession();
+</script>
 </body>
 </html>
