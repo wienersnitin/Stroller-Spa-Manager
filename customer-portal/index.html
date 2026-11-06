@@ -219,6 +219,50 @@ td strong{color:#183c2f}
 .gear-info small{font-size:9px;color:#777e72;display:block;margin-top:4px}
 .active-tag{float:right;color:#277d3b;background:#dff2dc;border-radius:20px;padding:4px 7px;font-size:8px;font-weight:800}
 
+/* ADD BABY GEAR FORM */
+.gear-heading-actions{display:flex;align-items:center;gap:9px}
+.add-gear-btn{
+  border:0;border-radius:22px;padding:10px 15px;
+  background:linear-gradient(90deg,#e8bd61,#f3d68e);
+  color:#18392d;font-size:10px;font-weight:800;
+}
+.gear-form{
+  display:none;background:#f8f0e4;border:1px solid #e8dac5;
+  border-radius:13px;padding:15px;margin-bottom:14px;
+}
+.gear-form.open{display:block}
+.gear-form h3{
+  font-family:'Playfair Display',serif;font-size:19px;
+  margin:0 0 13px;color:var(--green);
+}
+.gear-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.gear-field label{
+  display:block;font-size:10px;font-weight:800;
+  margin-bottom:6px;color:#425448;
+}
+.gear-field input,.gear-field select{
+  width:100%;min-width:0;padding:11px;
+  border:1px solid #dfd2bf;border-radius:8px;
+  background:#fffdf8;font:12px 'DM Sans',sans-serif;color:var(--ink);
+}
+.gear-form-actions{display:flex;gap:9px;margin-top:13px}
+.gear-form-actions button{
+  border:0;padding:10px 16px;border-radius:22px;
+  font-size:11px;font-weight:800;
+}
+.gear-save{background:var(--green);color:white}
+.gear-cancel{background:#e9dfd1;color:#35483c}
+.gear-card{position:relative}
+.gear-delete{
+  border:0;background:#fff0eb;color:#a23b2b;
+  padding:6px 9px;border-radius:15px;
+  font-size:9px;font-weight:800;margin-top:9px;
+}
+.gear-empty{
+  display:none;text-align:center;padding:18px 8px;
+  color:#777e72;font-size:11px;grid-column:1/-1;
+}
+
 /* QUICK ACTIONS */
 .quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .quick-card{
@@ -281,6 +325,9 @@ td strong{color:#183c2f}
   .top-profile img{width:35px;height:35px}
   .top-profile strong{font-size:11px}
   .hero h1{font-size:29px}
+  .gear-form-grid{grid-template-columns:1fr}
+  .gear-heading-actions{gap:5px}
+  .add-gear-btn{padding:9px 10px}
 }
 </style>
 </head>
@@ -349,7 +396,7 @@ td strong{color:#183c2f}
   <section class="stats">
     <div class="stat">
       <div class="stat-icon">♧</div>
-      <div><div class="stat-label">MY BABY GEAR</div><div class="stat-value">02</div><div class="stat-note">Registered</div></div>
+      <div><div class="stat-label">MY BABY GEAR</div><div class="stat-value" id="gearCount">02</div><div class="stat-note">Registered</div></div>
     </div>
     <div class="stat">
       <div class="stat-icon">▣</div>
@@ -416,16 +463,65 @@ td strong{color:#183c2f}
       </div>
     </div>
 
+    <!-- MY BABY GEAR -->
     <div class="panel anchor" id="gear">
-      <div class="panel-heading"><h2>♧ &nbsp;My Baby Gear</h2><a href="#gear">Manage Gear →</a></div>
-      <div class="gear-grid">
-        <div class="gear-card">
-          <img src="https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90" alt="Baby stroller">
-          <div class="gear-info"><span class="active-tag">● Active</span><strong>Baby Stroller</strong><small>Premium Travel System</small></div>
+      <div class="panel-heading">
+        <h2>♧ &nbsp;My Baby Gear</h2>
+        <div class="gear-heading-actions">
+          <button class="add-gear-btn" type="button" onclick="openGearForm()">+ Add Gear</button>
         </div>
-        <div class="gear-card">
-          <img src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=600&q=90" alt="Baby car seat">
-          <div class="gear-info"><span class="active-tag">● Active</span><strong>Baby Car Seat</strong><small>Infant Car Seat</small></div>
+      </div>
+
+      <!-- ADD GEAR FORM -->
+      <div class="gear-form" id="gearForm">
+        <h3>Register Your Baby Gear</h3>
+        <form id="newGearForm">
+          <div class="gear-form-grid">
+            <div class="gear-field">
+              <label for="gearType">Product Category *</label>
+              <select id="gearType" required>
+                <option value="">Select Category</option>
+                <option>Baby Stroller</option>
+                <option>Baby Car Seat</option>
+                <option>Baby Cot</option>
+                <option>High Chair</option>
+                <option>Baby Carrier</option>
+                <option>Other Baby Gear</option>
+              </select>
+            </div>
+
+            <div class="gear-field">
+              <label for="gearBrand">Brand *</label>
+              <input id="gearBrand" type="text" placeholder="e.g. Chicco" required>
+            </div>
+
+            <div class="gear-field">
+              <label for="gearModel">Model Name *</label>
+              <input id="gearModel" type="text" placeholder="Enter model name" required>
+            </div>
+
+            <div class="gear-field">
+              <label for="gearDate">Purchase Date</label>
+              <input id="gearDate" type="date">
+            </div>
+
+            <div class="gear-field" style="grid-column:1/-1">
+              <label for="gearImage">Product Image URL (Optional)</label>
+              <input id="gearImage" type="url" placeholder="Paste product image URL">
+            </div>
+          </div>
+
+          <div class="gear-form-actions">
+            <button class="gear-save" type="submit">Save Baby Gear</button>
+            <button class="gear-cancel" type="button" onclick="closeGearForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- REGISTERED GEAR CARDS APPEAR HERE -->
+      <div class="gear-grid" id="gearGrid">
+        <div class="gear-empty" id="gearEmpty">
+          No baby gear registered yet. Click + Add Gear to register your first item.
         </div>
       </div>
     </div>
@@ -434,7 +530,7 @@ td strong{color:#183c2f}
       <div class="panel-heading"><h2>⚡ &nbsp;Quick Actions</h2></div>
       <div class="quick-grid">
         <a class="quick-card" href="#bookings"><div class="quick-icon">▣</div><strong>Book a Service</strong><small>Schedule care</small></a>
-        <a class="quick-card" href="#gear"><div class="quick-icon">♧</div><strong>Add Baby Gear</strong><small>Register item</small></a>
+        <a class="quick-card" href="#gear" onclick="setTimeout(openGearForm,300)"><div class="quick-icon">♧</div><strong>Add Baby Gear</strong><small>Register item</small></a>
         <a class="quick-card" href="#payments"><div class="quick-icon">▤</div><strong>My Invoices</strong><small>View payments</small></a>
         <a class="quick-card" href="#support"><div class="quick-icon">♡</div><strong>Get Support</strong><small>We are here</small></a>
       </div>
@@ -454,20 +550,220 @@ td strong{color:#183c2f}
 </main>
 
 <script>
+
+/* MOBILE MENU */
 function toggleMenu(){
   document.getElementById('sidebar').classList.toggle('open');
 }
+
+/* NAVIGATION ACTIVE STATE */
 document.querySelectorAll('.nav a').forEach(function(link){
   link.addEventListener('click',function(){
     document.querySelectorAll('.nav a').forEach(function(item){
       item.classList.remove('active');
     });
     this.classList.add('active');
+
     if(window.innerWidth<=760){
       document.getElementById('sidebar').classList.remove('open');
     }
   });
 });
+
+/* MY BABY GEAR FUNCTIONALITY */
+
+const defaultGear = [
+  {
+    id:1,
+    type:"Baby Stroller",
+    brand:"Premium",
+    model:"Premium Travel System",
+    date:"",
+    image:"https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90"
+  },
+  {
+    id:2,
+    type:"Baby Car Seat",
+    brand:"Infant",
+    model:"Infant Car Seat",
+    date:"",
+    image:"https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=600&q=90"
+  }
+];
+
+let babyGear = [];
+
+try {
+  const savedGear = localStorage.getItem("strollerSpaBabyGear");
+  babyGear = savedGear ? JSON.parse(savedGear) : defaultGear;
+
+  if(!Array.isArray(babyGear)){
+    babyGear = defaultGear;
+  }
+} catch(error) {
+  babyGear = defaultGear;
+}
+
+/* SAVE GEAR IN BROWSER */
+function saveGearData(){
+  try {
+    localStorage.setItem(
+      "strollerSpaBabyGear",
+      JSON.stringify(babyGear)
+    );
+  } catch(error) {
+    alert("Unable to save data in this browser.");
+  }
+}
+
+/* DISPLAY REGISTERED GEAR */
+function renderBabyGear(){
+
+  const grid = document.getElementById("gearGrid");
+  const empty = document.getElementById("gearEmpty");
+
+  if(!grid || !empty) return;
+
+  grid.querySelectorAll(".gear-card").forEach(function(card){
+    card.remove();
+  });
+
+  empty.style.display = babyGear.length ? "none" : "block";
+
+  babyGear.forEach(function(item){
+
+    const card = document.createElement("div");
+    card.className = "gear-card";
+
+    const img = document.createElement("img");
+
+    img.src = item.image || "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90";
+    img.alt = item.type || "Baby gear";
+
+    img.onerror = function(){
+      this.onerror = null;
+      this.src = "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa?auto=format&fit=crop&w=600&q=90";
+    };
+
+    const info = document.createElement("div");
+    info.className = "gear-info";
+
+    const status = document.createElement("span");
+    status.className = "active-tag";
+    status.textContent = "● Active";
+
+    const title = document.createElement("strong");
+    title.textContent = item.type;
+
+    const detail = document.createElement("small");
+    detail.textContent = item.brand + " · " + item.model;
+
+    const date = document.createElement("small");
+    date.textContent = item.date
+      ? "Purchased: " + item.date
+      : "Purchase date not added";
+
+    const remove = document.createElement("button");
+    remove.className = "gear-delete";
+    remove.type = "button";
+    remove.textContent = "Remove Gear";
+
+    remove.addEventListener("click",function(){
+      deleteBabyGear(item.id);
+    });
+
+    info.append(status,title,detail,date,remove);
+    card.append(img,info);
+    grid.appendChild(card);
+
+  });
+
+  /* UPDATE GEAR COUNT */
+  const count = document.getElementById("gearCount");
+
+  if(count){
+    count.textContent = String(babyGear.length).padStart(2,"0");
+  }
+}
+
+/* OPEN ADD GEAR FORM */
+function openGearForm(){
+
+  const form = document.getElementById("gearForm");
+
+  if(!form) return;
+
+  form.classList.add("open");
+
+  form.scrollIntoView({
+    behavior:"smooth",
+    block:"center"
+  });
+}
+
+/* CLOSE ADD GEAR FORM */
+function closeGearForm(){
+
+  const form = document.getElementById("gearForm");
+  const newGearForm = document.getElementById("newGearForm");
+
+  if(form){
+    form.classList.remove("open");
+  }
+
+  if(newGearForm){
+    newGearForm.reset();
+  }
+}
+
+/* ADD NEW BABY GEAR */
+document.getElementById("newGearForm").addEventListener("submit",function(event){
+
+  event.preventDefault();
+
+  const newItem = {
+    id:Date.now(),
+    type:document.getElementById("gearType").value,
+    brand:document.getElementById("gearBrand").value.trim(),
+    model:document.getElementById("gearModel").value.trim(),
+    date:document.getElementById("gearDate").value,
+    image:document.getElementById("gearImage").value.trim()
+  };
+
+  if(!newItem.type || !newItem.brand || !newItem.model){
+    alert("Please complete all required fields.");
+    return;
+  }
+
+  babyGear.push(newItem);
+
+  saveGearData();
+  renderBabyGear();
+  closeGearForm();
+
+  alert("Your baby gear has been registered successfully!");
+
+});
+
+/* REMOVE BABY GEAR */
+function deleteBabyGear(id){
+
+  if(!confirm("Are you sure you want to remove this baby gear?")){
+    return;
+  }
+
+  babyGear = babyGear.filter(function(item){
+    return item.id !== id;
+  });
+
+  saveGearData();
+  renderBabyGear();
+}
+
+/* LOAD SAVED GEAR WHEN PAGE OPENS */
+renderBabyGear();
+
 </script>
+
 </body>
 </html>
