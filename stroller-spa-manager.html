@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -26,6 +27,7 @@ h2{margin-top:0}
 button{background:#087e91;color:#fff;border:0;border-radius:7px;padding:10px 13px;cursor:pointer;font-weight:600}
 button.secondary{background:#e8f0f4;color:#1c4d62}
 button.danger{background:#a7324b}
+button:disabled{opacity:.55;cursor:not-allowed}
 input,select,textarea{width:100%;padding:10px;border:1px solid #cbd9e2;border-radius:7px;font:inherit;background:#fff}
 label{display:block;font-size:13px;font-weight:600;margin-bottom:12px}
 label input,label select,label textarea{margin-top:5px}
@@ -40,12 +42,17 @@ th{background:#f5f9fc}
 .error{background:#fff0f0;color:#8b1f32}
 .muted{color:#65758b}
 .status-select{min-width:160px}
+.activation-result{display:none;background:#edf8f5;border:1px solid #b9e3d5;padding:16px;border-radius:10px;margin-top:15px}
+.activation-code{font-size:30px;font-weight:800;letter-spacing:5px;color:#075e50;margin:12px 0;word-break:break-word}
+.form-grid{display:grid;grid-template-columns:minmax(200px,1fr) auto;gap:12px;align-items:end}
+.form-grid label{margin:0}
 @media(max-width:800px){
  .layout{display:block}
  nav{display:flex;overflow-x:auto;gap:5px}
  nav button{white-space:nowrap;width:auto}
  main{padding:14px}
  header{padding:15px}
+ .form-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -79,8 +86,37 @@ th{background:#f5f9fc}
 
 <section id="customers" class="view">
  <h2>Customers</h2>
- <p class="muted">This directory is built from saved booking records. Independent customer creation and editing require a separate backend API.</p>
+ <p class="muted">Customer records are loaded from the Stroller Spa database. Generate an activation code to help a customer create their password and access the customer portal.</p>
+
  <div class="panel">
+  <h3>🔐 Customer Account Activation</h3>
+  <div class="note">
+   Select a customer and generate a one-time activation code. The code is valid for 24 hours. Share it securely with the customer. Once activated, the customer can log in using their mobile number and password.
+  </div>
+
+  <div class="form-grid">
+   <label>Select customer
+    <select id="activationCustomer">
+     <option value="">Loading customers...</option>
+    </select>
+   </label>
+   <button id="generateCodeBtn" onclick="generateActivationCode()">Generate Activation Code</button>
+  </div>
+
+  <div id="activationResult" class="activation-result">
+   <strong>Activation code generated</strong>
+   <div class="activation-code" id="activationCode"></div>
+   <p class="muted" id="activationExpiry"></p>
+   <div class="actions">
+    <button type="button" onclick="copyActivationCode()">Copy Code</button>
+    <button type="button" class="secondary" onclick="hideActivationCode()">Close</button>
+   </div>
+   <p class="sub">This code is shown only once. Please copy it and share it securely with the customer.</p>
+  </div>
+ </div>
+
+ <div class="panel">
+  <h3>Customer Directory</h3>
   <label>Search customers
    <input id="customerSearch" placeholder="Search name, phone, email..." oninput="renderCustomers()">
   </label>
@@ -181,7 +217,15 @@ const navItems = [
  ['reports','📈 Reports']
 ];
 
-let data = {dashboard:null,bookings:[],jobs:[],memberships:[]};
+let data = {
+ dashboard:null,
+ bookings:[],
+ jobs:[],
+ memberships:[],
+ customers:[]
+};
+
+let currentActivationCode = '';
 
 function message(text,isError=false) {
  const el = $('#message');
@@ -190,12 +234,18 @@ function message(text,isError=false) {
  el.hidden = false;
  window.scrollTo({top:0,behavior:'smooth'});
 }
-function clearMessage() { $('#message').hidden = true; }
+
+function clearMessage() {
+ $('#message').hidden = true;
+}
 
 function showView(id) {
  document.querySelectorAll('.view').forEach(x => x.classList.toggle('active',x.id===id));
  document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active',x.dataset.view===id));
- if(id==='customers') renderCustomers();
+ if(id==='customers') {
+  renderCustomers();
+  renderActivationCustomers();
+ }
  if(id==='gear') renderGear();
 }
 
@@ -203,42 +253,83 @@ $('#nav').innerHTML = navItems.map(([id,label],i) =>
  `<button data-view="${id}" class="${i===0?'active':''}" onclick="showView('${id}')">${label}</button>`
 ).join('');
 
-$('#today').textContent = new Date().toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+$('#today').textContent = new Date().toLocaleDateString(undefined,{
+ year:'numeric',month:'short',day:'numeric'
+});
 
 async function api(url,options={}) {
  const res = await fetch(url,{
   ...options,
   credentials:'same-origin',
-  headers:{'Content-Type':'application/json',...(options.headers||{})}
+  headers:{
+   'Content-Type':'application/json',
+   ...(options.headers||{})
+  }
  });
+
  if(res.status===401) {
   location.href='/login';
   throw new Error('Your staff session expired. Please sign in again.');
  }
+
  let body;
  try { body = await res.json(); } catch { body = {}; }
- if(!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+
+ if(!res.ok) {
+  throw new Error(body.error || `Request failed (${res.status})`);
+ }
+
  return body;
+}
+
+/* Supports common API response formats: array, {customers:[]}, or {items:[]} */
+function extractRows(response,keys=[]) {
+ if(Array.isArray(response)) return response;
+ if(!response || typeof response!=='object') return [];
+ for(const key of keys) {
+  if(Array.isArray(response[key])) return response[key];
+ }
+ if(Array.isArray(response.items)) return response.items;
+ if(Array.isArray(response.data)) return response.data;
+ return [];
 }
 
 async function refreshAll() {
  clearMessage();
+
  try {
-  const [dashboard,bookings,jobs,memberships] = await Promise.all([
+  const [
+   dashboard,
+   bookingsResponse,
+   jobsResponse,
+   membershipsResponse,
+   customersResponse
+  ] = await Promise.all([
    api('/api/admin/dashboard'),
    api('/api/admin/bookings'),
    api('/api/admin/jobs'),
-   api('/api/admin/memberships')
+   api('/api/admin/memberships'),
+   api('/api/admin/customers')
   ]);
-  data = {dashboard,bookings,jobs,memberships};
+
+  data = {
+   dashboard,
+   bookings:extractRows(bookingsResponse,['bookings']),
+   jobs:extractRows(jobsResponse,['jobs']),
+   memberships:extractRows(membershipsResponse,['memberships']),
+   customers:extractRows(customersResponse,['customers'])
+  };
+
   renderDashboard();
   renderCustomers();
+  renderActivationCustomers();
   renderGear();
   renderMemberships();
   renderBookings();
   renderJobs();
   renderReports();
   renderCatalog();
+
  } catch(e) {
   message(e.message || 'Could not load data.',true);
  }
@@ -253,86 +344,277 @@ function renderDashboard() {
  const b = data.dashboard?.bookings || [];
  const m = data.dashboard?.memberships || [];
  const recent = data.dashboard?.recent || [];
+
  const totalBookings = b.reduce((s,x)=>s+Number(x.count||0),0);
  const totalMembers = m.reduce((s,x)=>s+Number(x.count||0),0);
  const requested = b.find(x=>x.status==='requested')?.count || 0;
  const activeJobs = data.jobs.filter(j=>!['completed','cancelled'].includes(j.job_status)).length;
+
  $('#stats').innerHTML = [
   ['Total bookings',totalBookings],
   ['New requests',requested],
   ['Memberships',totalMembers],
   ['Active job cards',activeJobs]
  ].map(([a,n])=>`<div class="card"><span class="sub">${a}</span><b>${n}</b></div>`).join('');
+
  $('#recent').innerHTML = table(
   ['Reference','Customer','Phone','Gear','Service','Date','Status'],
   recent.map(r=>`<tr>
-   <td>${esc(r.reference)}</td><td>${esc(r.name)}</td><td>${esc(r.phone)}</td>
-   <td>${esc(r.category||'—')}</td><td>${esc(r.service)}</td>
-   <td>${date(r.preferred_date)}</td><td><span class="pill">${esc(r.status)}</span></td>
+   <td>${esc(r.reference)}</td>
+   <td>${esc(r.name)}</td>
+   <td>${esc(r.phone)}</td>
+   <td>${esc(r.category||'—')}</td>
+   <td>${esc(r.service)}</td>
+   <td>${date(r.preferred_date)}</td>
+   <td><span class="pill">${esc(r.status)}</span></td>
   </tr>`)
  );
 }
 
-function customers() {
+/* Prefer the real customer directory returned by the backend.
+   Fall back to booking-derived customers if the directory is empty. */
+function getCustomerList() {
+ if(data.customers.length) {
+  return data.customers.map(c=>({
+   id:c.id,
+   name:c.name,
+   phone:c.phone,
+   email:c.email,
+   bookings:Number(c.booking_count ?? c.bookings_count ?? 0),
+   gear:new Set()
+  }));
+ }
+
  const map = new Map();
+
  data.bookings.forEach(b=>{
   const key = String(b.customer_id ?? b.customer_phone ?? b.customer_name);
-  if(!map.has(key)) map.set(key,{
-   id:b.customer_id,name:b.customer_name,phone:b.customer_phone,email:b.customer_email,
-   bookings:0,gear:new Set()
-  });
+
+  if(!map.has(key)) {
+   map.set(key,{
+    id:b.customer_id,
+    name:b.customer_name,
+    phone:b.customer_phone,
+    email:b.customer_email,
+    bookings:0,
+    gear:new Set()
+   });
+  }
+
   const c = map.get(key);
   c.bookings++;
+
   if(b.gear_category) c.gear.add(b.gear_category);
  });
+
  return [...map.values()];
 }
 
 function renderCustomers() {
  const q = ($('#customerSearch')?.value||'').toLowerCase();
- const rows = customers()
-  .filter(c=>[c.name,c.phone,c.email].join(' ').toLowerCase().includes(q))
-  .map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.email||'—')}</td><td>${c.bookings}</td><td>${esc([...c.gear].join(', ')||'—')}</td></tr>`);
- $('#customerTable').innerHTML = table(['Customer','Phone','Email','Bookings','Gear categories'],rows);
+
+ const rows = getCustomerList()
+  .filter(c=>[
+   c.name,c.phone,c.email
+  ].join(' ').toLowerCase().includes(q))
+  .map(c=>`<tr>
+   <td>${esc(c.name)}</td>
+   <td>${esc(c.phone)}</td>
+   <td>${esc(c.email||'—')}</td>
+   <td>${Number(c.bookings||0)}</td>
+   <td>${esc(c.gear ? [...c.gear].join(', ')||'—' : '—')}</td>
+  </tr>`);
+
+ $('#customerTable').innerHTML = table(
+  ['Customer','Phone','Email','Bookings','Gear categories'],
+  rows
+ );
+}
+
+function renderActivationCustomers() {
+ const select = $('#activationCustomer');
+ if(!select) return;
+
+ const list = getCustomerList();
+
+ if(!list.length) {
+  select.innerHTML = '<option value="">No customers found</option>';
+  return;
+ }
+
+ const previous = select.value;
+
+ select.innerHTML =
+  '<option value="">Choose a customer</option>' +
+  list.filter(c=>c.id!=null).map(c=>
+   `<option value="${esc(c.id)}">${esc(c.name||'Customer')} — ${esc(c.phone||'No phone')}</option>`
+  ).join('');
+
+ if(previous && list.some(c=>String(c.id)===previous)) {
+  select.value = previous;
+ }
+}
+
+async function generateActivationCode() {
+ clearMessage();
+
+ const customerId = $('#activationCustomer').value;
+ const button = $('#generateCodeBtn');
+
+ if(!customerId) {
+  message('Please select a customer first.',true);
+  return;
+ }
+
+ if(!confirm('Generate a new 24-hour activation code for this customer?')) {
+  return;
+ }
+
+ button.disabled = true;
+ button.textContent = 'Generating...';
+ hideActivationCode();
+
+ try {
+  const result = await api(
+   `/api/admin/customers/${encodeURIComponent(customerId)}/activation-code`,
+   {
+    method:'POST',
+    body:'{}'
+   }
+  );
+
+  const code =
+   result.activation_code ||
+   result.activationCode ||
+   result.code;
+
+  if(!code) {
+   throw new Error('The server response did not contain an activation code. Please check the backend response.');
+  }
+
+  currentActivationCode = String(code);
+
+  $('#activationCode').textContent = currentActivationCode;
+
+  const expiry =
+   result.expires_at ||
+   result.expiresAt;
+
+  $('#activationExpiry').textContent = expiry
+   ? 'Valid until: ' + new Date(expiry).toLocaleString()
+   : 'This activation code is valid for 24 hours from generation.';
+
+  $('#activationResult').style.display = 'block';
+
+  message('Activation code generated successfully. Copy it and share it securely with the customer.');
+
+ } catch(e) {
+  message(e.message || 'Could not generate activation code.',true);
+ } finally {
+  button.disabled = false;
+  button.textContent = 'Generate Activation Code';
+ }
+}
+
+async function copyActivationCode() {
+ if(!currentActivationCode) {
+  message('No activation code is available to copy.',true);
+  return;
+ }
+
+ try {
+  await navigator.clipboard.writeText(currentActivationCode);
+  message('Activation code copied.');
+ } catch(e) {
+  message('Copy was blocked by the browser. Please select and copy the code manually.',true);
+ }
+}
+
+function hideActivationCode() {
+ currentActivationCode = '';
+ $('#activationResult').style.display = 'none';
+ $('#activationCode').textContent = '';
+ $('#activationExpiry').textContent = '';
 }
 
 function renderGear() {
  const q = ($('#gearSearch')?.value||'').toLowerCase();
+
  const rows = data.bookings
-  .filter(b=>[b.gear_category,b.gear_model,b.gear_serial,b.customer_name,b.customer_phone].join(' ').toLowerCase().includes(q))
-  .map(b=>`<tr><td>${esc(b.customer_name)}</td><td>${esc(b.customer_phone)}</td><td>${esc(b.gear_category||'—')}</td><td>${esc(b.gear_model||'—')}</td><td>${esc(b.gear_serial||'—')}</td><td>${esc(b.reference)}</td></tr>`);
- $('#gearTable').innerHTML = table(['Customer','Phone','Category','Model','Serial','Booking ref'],rows);
+  .filter(b=>[
+   b.gear_category,b.gear_model,b.gear_serial,
+   b.customer_name,b.customer_phone
+  ].join(' ').toLowerCase().includes(q))
+  .map(b=>`<tr>
+   <td>${esc(b.customer_name)}</td>
+   <td>${esc(b.customer_phone)}</td>
+   <td>${esc(b.gear_category||'—')}</td>
+   <td>${esc(b.gear_model||'—')}</td>
+   <td>${esc(b.gear_serial||'—')}</td>
+   <td>${esc(b.reference)}</td>
+  </tr>`);
+
+ $('#gearTable').innerHTML = table(
+  ['Customer','Phone','Category','Model','Serial','Booking ref'],
+  rows
+ );
 }
 
 function renderMemberships() {
  const rows = data.memberships.map(m=>{
   const deep = Math.max(0,Number(m.deep_total||0)-Number(m.deep_used||0));
   const essential = Math.max(0,Number(m.essential_total||0)-Number(m.essential_used||0));
-  return `<tr><td>${esc(m.code||m.id)}</td><td>${esc(m.name)}</td><td>${esc(m.phone)}</td>
-   <td>${esc(m.plan)}</td><td>${date(m.starts_at)}</td><td>${date(m.expires_at)}</td>
-   <td>${deep} / ${Number(m.deep_total||0)}</td><td>${essential} / ${Number(m.essential_total||0)}</td></tr>`;
+
+  return `<tr>
+   <td>${esc(m.code||m.id)}</td>
+   <td>${esc(m.name)}</td>
+   <td>${esc(m.phone)}</td>
+   <td>${esc(m.plan)}</td>
+   <td>${date(m.starts_at)}</td>
+   <td>${date(m.expires_at)}</td>
+   <td>${deep} / ${Number(m.deep_total||0)}</td>
+   <td>${essential} / ${Number(m.essential_total||0)}</td>
+  </tr>`;
  });
+
  $('#membershipTable').innerHTML = table(
-  ['Code','Customer','Phone','Plan','Starts','Expires','Deep remaining / total','Essential remaining / total'],rows
+  ['Code','Customer','Phone','Plan','Starts','Expires','Deep remaining / total','Essential remaining / total'],
+  rows
  );
 }
 
 async function confirmBooking(id) {
  if(!confirm('Confirm this booking?')) return;
+
  try {
-  await api(`/api/admin/bookings/${id}/confirm`,{method:'POST',body:'{}'});
+  await api(`/api/admin/bookings/${id}/confirm`,{
+   method:'POST',
+   body:'{}'
+  });
+
   message('Booking confirmed.');
   await refreshAll();
- } catch(e) { message(e.message,true); }
+
+ } catch(e) {
+  message(e.message,true);
+ }
 }
 
 async function createJob(id) {
  if(!confirm('Create a job card for this booking?')) return;
+
  try {
-  await api(`/api/admin/bookings/${id}/job`,{method:'POST',body:'{}'});
+  await api(`/api/admin/bookings/${id}/job`,{
+   method:'POST',
+   body:'{}'
+  });
+
   message('Job card created.');
   await refreshAll();
- } catch(e) { message(e.message,true); }
+
+ } catch(e) {
+  message(e.message,true);
+ }
 }
 
 function renderBookings() {
@@ -340,16 +622,25 @@ function renderBookings() {
   const action = b.status==='requested'
    ? `<button onclick="confirmBooking(${Number(b.id)})">Confirm</button>`
    : (['confirmed','received'].includes(b.status)&&!b.job_id
-      ? `<button onclick="createJob(${Number(b.id)})">Create job</button>` : '—');
-  return `<tr><td>${esc(b.reference)}</td>
+      ? `<button onclick="createJob(${Number(b.id)})">Create job</button>`
+      : '—');
+
+  return `<tr>
+   <td>${esc(b.reference)}</td>
    <td>${esc(b.customer_name)}<br><span class="muted">${esc(b.customer_phone)}</span></td>
    <td>${esc(b.gear_category||'—')}<br>${esc(b.gear_model||'')}</td>
-   <td>${esc(b.service)}</td><td>${date(b.preferred_date)}</td>
-   <td>${esc(b.fulfilment)}</td><td><span class="pill">${esc(b.status)}</span></td>
-   <td>${esc(b.job_status||'—')}</td><td>${action}</td></tr>`;
+   <td>${esc(b.service)}</td>
+   <td>${date(b.preferred_date)}</td>
+   <td>${esc(b.fulfilment)}</td>
+   <td><span class="pill">${esc(b.status)}</span></td>
+   <td>${esc(b.job_status||'—')}</td>
+   <td>${action}</td>
+  </tr>`;
  });
+
  $('#bookingTable').innerHTML = table(
-  ['Reference','Customer','Gear','Service','Preferred date','Fulfilment','Booking status','Job status','Action'],rows
+  ['Reference','Customer','Gear','Service','Preferred date','Fulfilment','Booking status','Job status','Action'],
+  rows
  );
 }
 
@@ -360,24 +651,41 @@ const jobStatuses = [
 
 async function updateJob(id,select) {
  const status = select.value;
+
  try {
   if(status==='completed') {
    if(!confirm('Complete this job? Membership credits may be deducted if a membership is attached.')) {
-    await refreshAll(); return;
+    await refreshAll();
+    return;
    }
-   const cleaning = prompt('Enter service type: essential, deep, or repair','essential');
-   if(!cleaning) { await refreshAll(); return; }
+
+   const cleaning = prompt(
+    'Enter service type: essential, deep, or repair',
+    'essential'
+   );
+
+   if(!cleaning) {
+    await refreshAll();
+    return;
+   }
+
    await api(`/api/admin/jobs/${id}/complete`,{
     method:'POST',
-    body:JSON.stringify({cleaning_type:cleaning.trim().toLowerCase()})
+    body:JSON.stringify({
+     cleaning_type:cleaning.trim().toLowerCase()
+    })
    });
+
   } else {
    await api(`/api/admin/jobs/${id}/status`,{
-    method:'POST',body:JSON.stringify({status})
+    method:'POST',
+    body:JSON.stringify({status})
    });
   }
+
   message('Job updated.');
   await refreshAll();
+
  } catch(e) {
   message(e.message,true);
   await refreshAll();
@@ -386,52 +694,96 @@ async function updateJob(id,select) {
 
 function renderJobs() {
  const rows = data.jobs.map(j=>`<tr>
-  <td>#${Number(j.job_id)}</td><td>${esc(j.reference)}</td>
+  <td>#${Number(j.job_id)}</td>
+  <td>${esc(j.reference)}</td>
   <td>${esc(j.customer_name)}<br>${esc(j.customer_phone)}</td>
   <td>${esc(j.gear_category||'—')} ${esc(j.gear_model||'')}</td>
   <td>${esc(j.service)}</td>
-  <td><select class="status-select" onchange="updateJob(${Number(j.job_id)},this)">
-   ${jobStatuses.map(s=>`<option value="${s}" ${s===j.job_status?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}
-  </select></td><td>${date(j.job_created_at)}</td></tr>`);
- $('#jobTable').innerHTML = table(['Job ID','Booking ref','Customer','Gear','Service','Update status','Created'],rows);
+  <td>
+   <select class="status-select" onchange="updateJob(${Number(j.job_id)},this)">
+    ${jobStatuses.map(s=>
+     `<option value="${s}" ${s===j.job_status?'selected':''}>${s.replaceAll('_',' ')}</option>`
+    ).join('')}
+   </select>
+  </td>
+  <td>${date(j.job_created_at)}</td>
+ </tr>`);
+
+ $('#jobTable').innerHTML = table(
+  ['Job ID','Booking ref','Customer','Gear','Service','Update status','Created'],
+  rows
+ );
 }
 
 function renderReports() {
  const completed = data.jobs.filter(j=>j.job_status==='completed');
+
  $('#reportStats').innerHTML = [
-  ['All bookings',data.bookings.length],['Job cards',data.jobs.length],
-  ['Completed jobs',completed.length],['Membership records',data.memberships.length]
- ].map(([a,n])=>`<div class="card"><span class="sub">${a}</span><b>${n}</b></div>`).join('');
+  ['All bookings',data.bookings.length],
+  ['Job cards',data.jobs.length],
+  ['Completed jobs',completed.length],
+  ['Membership records',data.memberships.length]
+ ].map(([a,n])=>
+  `<div class="card"><span class="sub">${a}</span><b>${n}</b></div>`
+ ).join('');
+
  $('#completedTable').innerHTML = table(
   ['Job ID','Reference','Customer','Service','Completed'],
-  completed.map(j=>`<tr><td>${Number(j.job_id)}</td><td>${esc(j.reference)}</td>
-   <td>${esc(j.customer_name)}</td><td>${esc(j.service)}</td><td>${date(j.completed_at)}</td></tr>`)
+  completed.map(j=>`<tr>
+   <td>${Number(j.job_id)}</td>
+   <td>${esc(j.reference)}</td>
+   <td>${esc(j.customer_name)}</td>
+   <td>${esc(j.service)}</td>
+   <td>${date(j.completed_at)}</td>
+  </tr>`)
  );
 }
 
 function renderCatalog() {
- $('#priceTable').innerHTML = table(['Category','Essential','Deep'],
-  prices.map(p=>`<tr><td>${esc(p[0])}</td><td>${money(p[1])}</td><td>${money(p[2])}</td></tr>`));
- $('#planTable').innerHTML = table(['Plan','Price','Duration','Deep credits','Essential credits'],
-  plans.map(p=>`<tr><td>${esc(p.name)}</td><td>${money(p.price)}</td><td>${p.months} months</td><td>${p.deep}</td><td>${p.essential}</td></tr>`));
- $('#addonTable').innerHTML = table(['Add-on','Price'],
-  addons.map(a=>`<tr><td>${esc(a[0])}</td><td>${money(a[1])}</td></tr>`));
+ $('#priceTable').innerHTML = table(
+  ['Category','Essential','Deep'],
+  prices.map(p=>
+   `<tr><td>${esc(p[0])}</td><td>${money(p[1])}</td><td>${money(p[2])}</td></tr>`
+  )
+ );
+
+ $('#planTable').innerHTML = table(
+  ['Plan','Price','Duration','Deep credits','Essential credits'],
+  plans.map(p=>
+   `<tr><td>${esc(p.name)}</td><td>${money(p.price)}</td><td>${p.months} months</td><td>${p.deep}</td><td>${p.essential}</td></tr>`
+  )
+ );
+
+ $('#addonTable').innerHTML = table(
+  ['Add-on','Price'],
+  addons.map(a=>
+   `<tr><td>${esc(a[0])}</td><td>${money(a[1])}</td></tr>`
+  )
+ );
 }
 
 function exportBackup() {
  const payload = {
   exported_at:new Date().toISOString(),
   dashboard:data.dashboard,
+  customers:data.customers,
   bookings:data.bookings,
   jobs:data.jobs,
   memberships:data.memberships
  };
- const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+
+ const blob = new Blob(
+  [JSON.stringify(payload,null,2)],
+  {type:'application/json'}
+ );
+
  const url = URL.createObjectURL(blob);
  const a = document.createElement('a');
+
  a.href = url;
  a.download = 'stroller-spa-visible-data-backup.json';
  a.click();
+
  URL.revokeObjectURL(url);
 }
 
