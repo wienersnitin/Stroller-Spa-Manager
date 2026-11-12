@@ -232,11 +232,51 @@ function makeActivationCode() {
   return code;
 }
 
-const allowedOrigins = (process.env.PUBLIC_ORIGIN ||
-  'https://kidscompany.co.in,https://myspa.kidscompany.co.in,https://stroller-spa-customer-portal.onrender.com')
-  .split(',')
-  .map(x => x.trim())
+
+const defaultOrigins = [
+  'https://kidscompany.co.in',
+  'https://www.kidscompany.co.in',
+  'https://myspa.kidscompany.co.in',
+  'https://spaadmin.kidscompany.co.in',
+  'https://stroller-spa-customer-portal.onrender.com'
+];
+
+const environmentOrigins = [
+  ...(process.env.PUBLIC_ORIGIN || '').split(','),
+  ...(process.env.ALLOWED_ORIGINS || '').split(',')
+]
+  .map(origin => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean);
+
+const allowedOrigins = new Set([
+  ...defaultOrigins,
+  ...environmentOrigins
+]);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+
+    const cleanOrigin = origin.trim().replace(/\/+$/, '');
+
+    const isAllowed =
+      allowedOrigins.has(cleanOrigin) ||
+      /^https:\/\/([a-z0-9-]+\.)*kidscompany\.co\.in$/i.test(cleanOrigin);
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+
+    console.warn('CORS blocked origin:', cleanOrigin);
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key'],
+  optionsSuccessStatus: 204,
+  maxAge: 86400
+}));
+
 
 app.use(helmet());
 
