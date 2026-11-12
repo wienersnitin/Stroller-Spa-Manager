@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
@@ -232,6 +233,9 @@ function makeActivationCode() {
   return code;
 }
 
+// --------------------------------------------------
+// SECURITY HEADERS AND CORS - SINGLE CONFIGURATION
+// --------------------------------------------------
 
 const defaultOrigins = [
   'https://kidscompany.co.in',
@@ -253,11 +257,13 @@ const allowedOrigins = new Set([
   ...environmentOrigins
 ]);
 
+app.use(helmet());
+
 app.use(cors({
   origin(origin, callback) {
     if (!origin || origin === 'null') {
-  return callback(null, true);
-}
+      return callback(null, true);
+    }
 
     const cleanOrigin = origin.trim().replace(/\/+$/, '');
 
@@ -277,19 +283,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key'],
   optionsSuccessStatus: 204,
   maxAge: 86400
-}));
-
-
-app.use(helmet());
-
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Origin not allowed by CORS'));
-  },
-  credentials: true
 }));
 
 // Shopify webhook must receive the untouched raw request body.
@@ -1012,7 +1005,6 @@ app.get('/api/customer/memberships', verifyCustomer, async (req, res) => {
 });
 
 // Payments are not connected to a payment/invoice table yet.
-// Return an honest empty state rather than fabricated payment records.
 app.get('/api/customer/payments', verifyCustomer, async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.json({
@@ -1343,7 +1335,6 @@ app.post('/api/admin/jobs/:id/assign-membership', admin, async (req, res) => {
 });
 
 // Complete job and deduct membership credit.
-// COALESCE handles older memberships whose used counters are NULL.
 app.post('/api/admin/jobs/:id/complete', admin, async (req, res) => {
   const client = await pool.connect();
   try {
