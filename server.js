@@ -255,7 +255,9 @@ const allowedOrigins = new Set([
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
+    if (!origin || origin === 'null') {
+  return callback(null, true);
+}
 
     const cleanOrigin = origin.trim().replace(/\/+$/, '');
 
